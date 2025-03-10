@@ -5,5 +5,3 @@
 TRAILER • [DEMO PLACE](https://www.roblox.com/games/18895967110) • [GITHUB](https://github.com/rblxmotion/RoPhone) • [MARKETPLACE](https://create.roblox.com/store/asset/130170677520739)
 
 </div>
-
-# Welcome to ShinePhone (RoPhone)
