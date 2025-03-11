@@ -31,8 +31,8 @@ local Gesture = require(script:WaitForChild("Gesture"))
 local OS = {}
 
 local dependencies = script:WaitForChild("Dependencies")
-OS.Spr = require(dependencies:WaitForChild("Spr"))
-OS.Grid = require(dependencies:WaitForChild("Grid"))
+local Spr = require(dependencies:WaitForChild("Spr"))
+local Grid = require(dependencies:WaitForChild("Grid"))
 
 function OS.new(player: Player, phoneSettings: PhoneSettings?, dataRemote: RemoteEvent?)	
 	
@@ -122,7 +122,7 @@ function OS.new(player: Player, phoneSettings: PhoneSettings?, dataRemote: Remot
 		for i, v in OS.Apps do
 			v:CloseApp()
 			task.wait(.01)
-			OS.Spr.target(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(1,1,1)})
+			OS.Spring(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(1,1,1)})
 		end
 	end)
 	
@@ -132,7 +132,7 @@ function OS.new(player: Player, phoneSettings: PhoneSettings?, dataRemote: Remot
 	}
 	
 	OS.Grids = {
-		[1] = OS.Grid.new(6, 4, Vector2.new(.2,.1), Vector2.new(.2,.4))
+		[1] = Grid.new(6, 4, Vector2.new(.2,.1), Vector2.new(.2,.4))
 	}
 	
 	-- Create table for all registered apps
@@ -186,13 +186,21 @@ function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme
 	
 	app.ButtonClicked:Connect(function()
 		if app.Theme == "Dark" then
-			OS.Spr.target(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(1,1,1)})
+			OS.Spring(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(1,1,1)})
 		else
-			OS.Spr.target(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(0, 0, 0)})			
+			OS.Spring(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(0, 0, 0)})			
 		end
 	end)
 	
 	return app
+end
+
+function OS.Spring(instance: Instance, damping: number, frequency: number, properties: {[string]: any}): boolean
+	Spr.target(instance, damping, frequency, properties)
+
+	Spr.completed(instance, function()
+		return true
+	end)
 end
 
 return OS
