@@ -2,6 +2,8 @@
 local dependencies = script.Parent:WaitForChild("Dependencies")
 local Spr = require(dependencies:WaitForChild("Spr"))
 
+local Media = require(script:WaitForChild("Media")
+
 type IslandSize = "Small" | "Large" | "Square"
 
 local Island = {}
@@ -73,7 +75,7 @@ function Island:Notify(islandSize: IslandSize)
 end
 
 function Island:AddMedia()
-	
+	local media = Media.new()
 end
 
 return Island
