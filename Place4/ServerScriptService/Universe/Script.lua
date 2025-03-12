@@ -1,0 +1,2 @@
+-- @ScriptType: Script
+-- @ScriptType: Script
