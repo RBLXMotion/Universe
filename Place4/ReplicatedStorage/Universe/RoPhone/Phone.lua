@@ -3,13 +3,13 @@
 -- DEFAULT SETTINGS
 
 -- Device looks
-local SIZE = UDim2.new(.2,0,.7,0) 			-- Size of phone (Constrained by AspectRatio)
+local SIZE = UDim2.new(.2,0,.7,0) 		-- Size of phone (Constrained by AspectRatio)
 local POSITION = UDim2.new(.5,0,.5,0) 		-- Position of phone on-screen
 local ANCHOR_POINT = Vector2.new(.5,.5) 	-- Anchor point of phone
 local CORNER_RADIUS = UDim.new(.125,0) 		-- Corner radius of the phone
-local ASPECT_RATIO = .49					-- Aspect ratio of the phone (9:16 is .52) (9:19.5 is .49)
+local ASPECT_RATIO = .49			-- Aspect ratio of the phone (9:16 is .52) (9:19.5 is .49)
 local PHONE_COLOR = Color3.new(0, 0, 0)		-- Color of phone case
-local CASE_THICKNESS = 3					-- Phone case thickness
+local CASE_THICKNESS = 3			-- Phone case thickness
 
 -- UI defaults
 local APP_GRID_X = 4
