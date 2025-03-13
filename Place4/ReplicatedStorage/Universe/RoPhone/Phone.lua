@@ -1,16 +1,29 @@
 -- @ScriptType: ModuleScript
--- @ScriptType: ModuleScript
 
-local SIZE = UDim2.new(.2,0,.7,0)
-local POSITION = UDim2.new(.5,0,.5,0)
-local ANCHOR_POINT = Vector2.new(.5,.5)
-local CORNER_RADIUS = UDim.new(.125,0)
-local ASPECT_RATIO = .52
-local PHONE_COLOR = Color3.new(0, 0, 0)
-local CASE_THICKNESS = 3
+-- DEFAULT SETTINGS
 
-local TIMEOUT = 5
+-- Device looks
+local SIZE = UDim2.new(.2,0,.7,0) 			-- Size of phone (Constrained by AspectRatio)
+local POSITION = UDim2.new(.5,0,.5,0) 		-- Position of phone on-screen
+local ANCHOR_POINT = Vector2.new(.5,.5) 	-- Anchor point of phone
+local CORNER_RADIUS = UDim.new(.125,0) 		-- Corner radius of the phone
+local ASPECT_RATIO = .49					-- Aspect ratio of the phone (9:16 is .52) (9:19.5 is .49)
+local PHONE_COLOR = Color3.new(0, 0, 0)		-- Color of phone case
+local CASE_THICKNESS = 3					-- Phone case thickness
 
+-- UI defaults
+local APP_GRID_X = 4
+local APP_GRID_Y = 6
+
+local GRID_PAD_X = .2
+local GRID_PAD_Y = .2
+
+-- END OF SETTINGS
+
+-- CONSTANTS
+local APP_TIMEOUT = 5		-- Time, in seconds, before OS.RegisterApp() quits and errors if app is not loaded.
+
+-- THEMES
 type PhoneSettings = {
 	Size: UDim2,
 	Position: UDim2,
@@ -23,6 +36,7 @@ type PhoneSettings = {
 
 type Theme = "Light" | "Dark"
 
+-- VARIABLES
 local RunService = game:GetService("RunService")
 
 local Page = require(script:WaitForChild("Page"))
@@ -39,6 +53,7 @@ local Spr = require(dependencies:WaitForChild("Spr"))
 local Grid = require(dependencies:WaitForChild("Grid"))
 local Signal = require(dependencies:WaitForChild("GoodSignal"))
 
+-- FUNCTIONS
 function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote: RemoteEvent?)	
 	
 	defaultApps.Parent = player.PlayerScripts
