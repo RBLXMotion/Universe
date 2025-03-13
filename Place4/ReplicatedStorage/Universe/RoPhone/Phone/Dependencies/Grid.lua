@@ -1,29 +1,28 @@
 -- @ScriptType: ModuleScript
--- @ScriptType: ModuleScript
--- @ScriptType: ModuleScript
+
 local Grid = {}
 Grid.__index = Grid
 
-function Grid.new(rows: number, columns: number, padding: Vector2, offset: Vector2)
+function Grid.new(parent: GuiObject, gridSize: Vector2, padding: Vector2, constraint: GuiObject)
 	local self = setmetatable({}, Grid)
 
-	self.Max = rows * columns
+	self.Max = gridSize.X * gridSize.Y
 
-	self.X = columns
-	self.Y = rows
-	
+	self.X = gridSize.X -- Columns
+	self.Y = gridSize.Y -- Rows
+
 	self.PaddingX = padding.X
 	self.PaddingY = padding.Y
-	
-	self.OffsetX = offset.X
-	self.OffsetY = offset.Y
+
+	self.Parent = parent
+	self.Constraint = constraint
 
 	self.Objects = {}
 	self.Grid = {}
 
-	for i = 1, rows do
+	for i = 1, self.Y do
 		self.Grid[i] = {}
-		for j = 1, columns do
+		for j = 1, self.X do
 			self.Grid[i][j] = false
 		end
 	end
@@ -59,7 +58,7 @@ function Grid:AddObject(object: GuiObject): boolean
 			math.round(self.Y * object.Size.Y.Scale)
 		),
 	}
-		
+
 	for i, row in self.Grid do -- Loop each row
 		for j, v in row do -- Loop each unit in row
 			if not v then -- Unit open
@@ -69,27 +68,27 @@ function Grid:AddObject(object: GuiObject): boolean
 				if fit then
 					self:FillUnits(i, j, gridObject.Size)
 					gridObject.GridPos = Vector2.new(j, i)
-					
+
 					object.Size = UDim2.fromScale(
-						object.Size.X.Scale - (self.PaddingX/self.X) - (self.OffsetX/self.X),
-						object.Size.Y.Scale - (self.PaddingY/self.Y) - (self.OffsetY/self.Y)
+						(object.Size.X.Scale - (self.PaddingX/self.X)) * self.Constraint.Size.X.Scale,
+						(object.Size.Y.Scale - (self.PaddingY/self.Y)) * self.Constraint.Size.Y.Scale
 					)
-					
+
 					gridObject.ScreenPos = UDim2.fromScale(
-						(((j-1)/self.X) + (self.PaddingX/self.X/2) + (self.OffsetX/2) + (object.Size.X.Scale/2)) * (1-self.OffsetX),
-						(((i-1)/self.Y) + (self.PaddingY/self.Y/2) + (self.OffsetY/2) + (object.Size.Y.Scale/2)) * (1-self.OffsetY)
+						(((j-1)/self.X) + (self.PaddingX/self.X/2) + (self.Constraint.Position.X.Scale - self.Constraint.Size.X.Scale/2) + (object.Size.X.Scale/2)),
+						(((i-1)/self.Y) + (self.PaddingY/self.Y/2) + ((self.Constraint.Position.Y.Scale + self.Constraint.Size.Y.Scale/2) - self.Constraint.Size.Y.Scale/2) + (object.Size.Y.Scale/2))
 					)
-					
+
 					object.Position = gridObject.ScreenPos
-					
+
 					self.Objects[#self.Objects + 1] = gridObject
-										
+
 					return true
 				end
 			end
 		end
 	end
-	
+
 	return false
 end
 
