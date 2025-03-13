@@ -135,10 +135,14 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	-- Set up island (pill at top of screen)
 	OS.Island = Island.new(2)
 	OS.Island.Frame.Parent = OS.Screen
+
+	OS.IslandInset = OS.Island.Frame.Position.Y.Scale + OS.Island.Frame.Size.Y.Scale
 	
 	-- Set up gesture bar (home button at bottom of screen)
 	OS.Gesture = Gesture.new()
 	OS.Gesture.Button.Parent = OS.Screen
+
+	OS.GestureInset = OS.Gesture.Button.Position.Y.Scale + OS.Gesture.Button.Size.Y.Scale
 	
 	OS.Gesture.GestureClicked:Connect(function()
 		for i, v in OS.Apps do
