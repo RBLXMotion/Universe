@@ -59,8 +59,8 @@ function Grid:AddObject(object: GuiObject): boolean
 		),
 	}
 
-	for i, row in self.Grid do -- Loop each row
-		for j, v in row do -- Loop each unit in row
+	for i, row in ipairs(self.Grid) do -- Loop each row
+		for j, v in ipairs(row) do -- Loop each unit in row
 			if not v then -- Unit open
 
 				local fit = self:CheckUnitSize(i, j, gridObject.Size)
@@ -73,10 +73,25 @@ function Grid:AddObject(object: GuiObject): boolean
 						(object.Size.X.Scale - (self.PaddingX/self.X)) * self.Constraint.Size.X.Scale,
 						(object.Size.Y.Scale - (self.PaddingY/self.Y)) * self.Constraint.Size.Y.Scale
 					)
+					
+					local initialPosX = 0
+					local initialPosY = 0
+										
+					for _, obj in self.Objects do
+						if obj.GridPos.Y == i and obj.GridPos.X < j then
+							initialPosX += obj.Object.Size.X.Scale + self.PaddingX/self.X
+						end
+					end
+					
+					for _, obj in self.Objects do
+						if obj.GridPos.X == j and obj.GridPos.Y < i then
+							initialPosY += obj.Object.Size.Y.Scale + self.PaddingY/self.Y
+						end
+					end
 
 					gridObject.ScreenPos = UDim2.fromScale(
-						(((j-1)/self.X) + (self.PaddingX/self.X/2) + (self.Constraint.Position.X.Scale - self.Constraint.Size.X.Scale/2) + (object.Size.X.Scale/2)),
-						(((i-1)/self.Y) + (self.PaddingY/self.Y/2) + ((self.Constraint.Position.Y.Scale + self.Constraint.Size.Y.Scale/2) - self.Constraint.Size.Y.Scale/2) + (object.Size.Y.Scale/2))
+						(initialPosX + object.Size.X.Scale/2) + (self.Constraint.Position.X.Scale - self.Constraint.Size.X.Scale/2),
+						(initialPosY + object.Size.Y.Scale/2) + ((self.Constraint.Position.Y.Scale + self.Constraint.Size.Y.Scale/2) - self.Constraint.Size.Y.Scale/2)
 					)
 
 					object.Position = gridObject.ScreenPos
