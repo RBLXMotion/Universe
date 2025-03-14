@@ -1,6 +1,5 @@
 -- @ScriptType: ModuleScript
--- @ScriptType: ModuleScript
--- @ScriptType: ModuleScript
+
 local dependencies = script.Parent:WaitForChild("Dependencies")
 local Spr = require(dependencies:WaitForChild("Spr"))
 
@@ -30,7 +29,7 @@ function Island.new(notificationDuration: number)
 	return self
 end
 
-function Island:Notify(islandSize: IslandSize)
+function Island:Notify(app, title: string, description: string, imageId: string, islandSize: IslandSize)
 	if islandSize == "Large" then
 		local completed = false
 		
