@@ -215,6 +215,36 @@ function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme
 	return app
 end
 
+function OS.GetApp(searchParameter: string | CanvasGroup | GuiButton): typeof(App.new())
+	local searchType = typeof(searchParameter)
+	
+	for i, v in OS.Apps do
+		if searchType == "string" then
+			if v.Name == searchParameter then
+				return v
+			end
+		elseif searchType == "CanvasGroup" then
+			if v.Frame == searchParameter then
+				return v
+			end
+		elseif searchType == "GuiButton" then
+			if v.Button == searchParameter then
+				return v
+			end
+		end
+	end
+end
+
+function OS.PushNotification(app: App, title: string, description: string, imageId: number, type: NotificationType)
+	OS.Island:Notify(app, title, description, imageId, type)
+end
+
+function OS.PushPermission(app: App, permissionType: PermissionType)
+	local Frame = Instance.new("Frame", app.Frame)
+	Frame.ZIndex = 100000
+	
+end
+
 function OS.Spring(instance: Instance, damping: number, frequency: number, properties: {[string]: any}): boolean
 	Spr.target(instance, damping, frequency, properties)
 
