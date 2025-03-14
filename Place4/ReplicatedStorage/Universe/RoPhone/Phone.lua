@@ -10,6 +10,8 @@ local CORNER_RADIUS = UDim.new(.125,0) 		-- Corner radius of the phone
 local ASPECT_RATIO = .49			-- Aspect ratio of the phone (9:16 is .52) (9:19.5 is .49)
 local PHONE_COLOR = Color3.new(0, 0, 0)		-- Color of phone case
 local CASE_THICKNESS = 3			-- Phone case thickness
+local POWER_COLOR = Color3.new(0, 0, 0)		-- Power button color
+local VOLUME_COLOR = Color3.new(0, 0, 0)	-- Volume button color
 
 -- UI defaults
 local APP_GRID_X = 4
@@ -17,6 +19,9 @@ local APP_GRID_Y = 6
 
 local GRID_PAD_X = .2
 local GRID_PAD_Y = .2
+
+-- Device Defaults
+local DEFAULT_VOLUME = .5
 
 -- END OF SETTINGS
 
@@ -31,13 +36,16 @@ type PhoneSettings = {
 	CornerRadius: UDim,
 	AspectRatio: number,
 	PhoneColor: Color3,
-	CaseThickness: number
+	CaseThickness: number,
+	PowerColor: Color3,
+	VolumeColor: Color3,
 }
 
 type Theme = "Light" | "Dark"
 
 -- VARIABLES
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local Page = require(script:WaitForChild("Page"))
 local App = require(script:WaitForChild("App"))
@@ -53,6 +61,8 @@ local Spr = require(dependencies:WaitForChild("Spr"))
 local Grid = require(dependencies:WaitForChild("Grid"))
 local Signal = require(dependencies:WaitForChild("GoodSignal"))
 
+local viewport = Workspace.Camera.ViewportSize
+
 -- FUNCTIONS
 function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote: RemoteEvent?)	
 	
@@ -67,7 +77,9 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 			CornerRadius = CORNER_RADIUS,
 			AspectRatio = ASPECT_RATIO,
 			PhoneColor = PHONE_COLOR,
-			CaseThickness = CASE_THICKNESS
+			CaseThickness = CASE_THICKNESS,
+			PowerColor = POWER_COLOR,
+			VolumeColor = VOLUME_COLOR,
 		}
 	end
 
@@ -105,6 +117,27 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.FrameThick = Instance.new("UIStroke", OS.Frame)
 	OS.FrameThick.Thickness = phoneSettings.CaseThickness
 	OS.FrameThick.Color = phoneSettings.PhoneColor
+
+	-- Set up volume and power buttons
+	OS.Volume = Volume.new(DEFAULT_VOLUME)
+	OS.Volume.ButtonUp.Parent = OS.Frame
+	OS.Volume.ButtonDown.Parent = OS.Frame
+
+	OS.Volume.ButtonUp.AnchorPoint = Vector2.new(.5,.5)
+	OS.Volume.ButtonUp.Position = UDim2.new(1,.25)
+	OS.Volume.ButtonUp.Size = UDim2.new(phoneSettings.CaseThickness/viewport.X/2,.1)
+	OS.Volume.ButtonUp.BackgroundColor3 = phoneSettings.VolumeColor
+
+	OS.Volume.ButtonDown.AnchorPoint = Vector2.new(.5,.5)
+	OS.Volume.ButtonDown.Position = UDim2.new(1,.4)
+	OS.Volume.ButtonDown.Size = UDim2.new(phoneSettings.CaseThickness/viewport.X/2,.1)
+	OS.Volume.ButtonDown.BackgroundColor3 = phoneSettings.VolumeColor
+
+	OS.PowerButton = Instance.new("TextButton", OS.Frame)
+	OS.PowerButton.AnchorPoint = Vector2.new(.5,.5)
+	OS.PowerButton.Position = UDim2.new(0,.25)
+	OS.PowerButton.Size = UDim2.new(phoneSettings.CaseThickness/viewport.X/2,.1)
+	OS.PowerButton.BackgroundColor3 = phoneSettings.PowerColor
 	
 	-- Set up phone screen
 	OS.Screen = Instance.new("CanvasGroup", OS.Frame)
@@ -164,10 +197,6 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	
 	-- Create table for all registered apps
 	OS.Apps = {}
-	
-	-- General OS variables
-	OS.SoundInstances = {}
-	OS.Volume = .5
 end
 
 function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme: Theme): typeof(App.new())
