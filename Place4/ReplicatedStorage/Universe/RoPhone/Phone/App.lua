@@ -1,5 +1,4 @@
 -- @ScriptType: ModuleScript
--- @ScriptType: ModuleScript
 
 local dependencies = script.Parent:WaitForChild("Dependencies")
 local Spr = require(dependencies:WaitForChild("Spr"))
@@ -10,23 +9,25 @@ type Theme = "Light" | "Dark"
 local App = {}
 App.__index = App
 
-function App.new(name: string, frame: CanvasGroup, imageId: number, theme: Theme)
+function App.new(name: string, frame: CanvasGroup, imageId: number, theme: Theme, aspectRatio: number)
 	local self = setmetatable({}, App)
 
 	self.Name = name
 	
 	self.Frame = frame
+	self.Frame.AnchorPoint = Vector2.new(.5,.5)
 	
 	self.FrameCorner = Instance.new("UICorner", self.Frame)
 	self.FrameCorner.CornerRadius = UDim.new(.125,0)
 	
 	self.FrameRatio = Instance.new("UIAspectRatioConstraint", self.Frame)
-	self.FrameRatio.AspectRatio = .52
+	self.FrameRatio.AspectRatio = aspectRatio
 	
 	self.Button = Instance.new("ImageButton")
 	self.Button.AnchorPoint = Vector2.new(.5,.5)
 	self.Button.BorderSizePixel = 0
 	self.Button.AutoButtonColor = false
+	self.Button.BackgroundColor3 = Color3.new(1,1,1)
 	self.Button.Image = "rbxassetid://"..imageId
 	
 	self.ButtonCorner = Instance.new("UICorner", self.Button)
@@ -43,6 +44,8 @@ function App.new(name: string, frame: CanvasGroup, imageId: number, theme: Theme
 	self.Open = false
 	
 	self.Theme = theme
+	
+	self.DeviceAspectRatio = aspectRatio
 
 	self.ButtonClicked:Connect(function()
 		self:OpenApp()
@@ -68,7 +71,7 @@ function App:OpenApp()
 	Spr.target(self.Button, 1, 3, {Size = UDim2.new(1,0,1,0), Position = UDim2.new(.5,0,.5,0)})
 	Spr.target(self.Frame, 1, 3, {Size = UDim2.new(1,0,1,0), Position = UDim2.new(.5,0,.5,0)})
 	Spr.target(self.Frame, 1, 4, {GroupTransparency = 0})
-	Spr.target(self.FrameRatio, 1, 2, {AspectRatio = .52})
+	Spr.target(self.FrameRatio, 1, 2, {AspectRatio = self.DeviceAspectRatio})
 	Spr.target(self.FrameCorner, 1, 2, {CornerRadius = UDim.new(.125,0)})
 
 	self.Open = true
@@ -79,8 +82,8 @@ function App:CloseApp()
 		return
 	end
 	
-	Spr.target(self.Button, .75, 3, {Size = self.DefaultSize, Position = self.DefaultPos})
-	Spr.target(self.Frame, .75, 3, {Size = self.DefaultSize, Position = self.DefaultPos})
+	Spr.target(self.Button, .8, 3, {Size = self.DefaultSize, Position = self.DefaultPos})
+	Spr.target(self.Frame, .8, 3, {Size = self.DefaultSize, Position = self.DefaultPos})
 	Spr.target(self.Frame, 1, 4, {GroupTransparency = 1})
 	Spr.target(self.FrameRatio, 1, 4, {AspectRatio = 1})
 	Spr.target(self.FrameCorner, 1, 4, {CornerRadius = self.ButtonCorner.CornerRadius})
