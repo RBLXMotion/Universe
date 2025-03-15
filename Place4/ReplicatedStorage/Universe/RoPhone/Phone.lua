@@ -236,6 +236,73 @@ function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme
 	return app
 end
 
+function OS.GetApp(searchParameter: string | CanvasGroup | GuiButton): typeof(App.new())
+	local searchType = typeof(searchParameter)
+
+	for i, v in OS.Apps do
+		if searchType == "string" then
+			if v.Name == searchParameter then
+				return v
+			end
+		elseif searchType == "CanvasGroup" then
+			if v.Frame == searchParameter then
+				return v
+			end
+		elseif searchType == "GuiButton" then
+			if v.Button == searchParameter then
+				return v
+			end
+		end
+	end
+end
+
+function OS.PushNotification(app: App, title: string, description: string, imageId: number, islandType: "Small" | "Large" | "Square")
+	OS.Island:Notify(app, title, description, imageId, islandType)
+end
+
+-- WIP
+function OS.PushPermission(app: App, permissionType: PermissionType)
+	local frame = Instance.new("Frame", app.Frame)
+	frame.Position = UDim2.new(.5,0,.5,0)
+	frame.AnchorPoint = Vector2.new(.5,.5)
+	frame.Size = UDim2.new(.75,0,.5,0)
+	frame.ZIndex = 100000
+	frame.BackgroundColor3 = Color3.new(.1,.1,.1)
+
+	local corner = Instance.new("UICorner", frame)
+	corner.CornerRadius = UDim.new(.15,0)
+
+	local title = Instance.new("TextLabel", frame)
+	title.AnchorPoint = Vector2.new(.5,.5)
+	title.Position = UDim2.new(.5,0,.15,0)
+	title.Size = UDim2.new(.9,0,.2,0)
+	title.Text = "Title"
+
+	local description = Instance.new("TextLabel", frame)
+	description.AnchorPoint = Vector2.new(.5,.5)
+	description.Position = UDim2.new(.5,0,.5,0)
+	description.Size = UDim2.new(.9,0,.4,0)
+	description.Text = `Allow {app.Name} to access {permissionType}?`
+
+	local allowButton = Instance.new("TextButton", frame)
+	allowButton.AnchorPoint = Vector2.new(.5,.5)
+	allowButton.Position = UDim2.new(.5,0.6,0)
+	allowButton.Size = UDim2.new(.9,0,.2,0)
+	allowButton.Text = "Allow"
+
+	local allowCorner = Instance.new("UICorner", allowButton)
+	allowCorner.CornerRadius = UDim2.new(.2,0)
+
+	local declineButton = Instance.new("TextButton", frame)
+	declineButton.AnchorPoint = Vector2.new(.5,.5)
+	declineButton.Position = UDim2.new(.5,0.85,0)
+	declineButton.Size = UDim2.new(.9,0,.2,0)
+	declineButton.Text = "Decline"
+
+	local declineCorner = Instance.new("UICorner", allowButton)
+	declineCorner.CornerRadius = UDim2.new(.2,0)
+end
+
 function OS.Spring(instance: Instance, damping: number, frequency: number, properties: {[string]: any}): boolean
 	Spr.target(instance, damping, frequency, properties)
 
