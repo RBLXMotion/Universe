@@ -238,7 +238,7 @@ end
 
 function OS.GetApp(searchParameter: string | CanvasGroup | GuiButton): typeof(App.new())
 	local searchType = typeof(searchParameter)
-	
+
 	for i, v in OS.Apps do
 		if searchType == "string" then
 			if v.Name == searchParameter then
@@ -256,10 +256,11 @@ function OS.GetApp(searchParameter: string | CanvasGroup | GuiButton): typeof(Ap
 	end
 end
 
-function OS.PushNotification(app: App, title: string, description: string, imageId: number, type: NotificationType)
-	OS.Island:Notify(app, title, description, imageId, type)
+function OS.PushNotification(app: App, title: string, description: string, imageId: number, islandType: "Small" | "Large" | "Square")
+	OS.Island:Notify(app, title, description, imageId, islandType)
 end
 
+-- WIP
 function OS.PushPermission(app: App, permissionType: PermissionType)
 	local frame = Instance.new("Frame", app.Frame)
 	frame.Position = UDim2.new(.5,0,.5,0)
