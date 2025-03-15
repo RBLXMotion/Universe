@@ -1,4 +1,4 @@
 # Universe
 
-* [ShinePhone (RoPhone)](https://github.com/RBLXMotion/Universe/tree/main/Place1/ReplicatedStorage/Universe/RoPhone)
+* [ShinePhone (RoPhone)](Place4/ReplicatedStorage/Universe/RoPhone)
 * DeviceLink
