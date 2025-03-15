@@ -1,34 +1,9 @@
 -- @ScriptType: ModuleScript
 
--- DEFAULT SETTINGS
-
--- Device looks
-local SIZE = UDim2.new(.2,0,.7,0) 		-- Size of phone (Constrained by AspectRatio)
-local POSITION = UDim2.new(.5,0,.5,0) 		-- Position of phone on-screen
-local ANCHOR_POINT = Vector2.new(.5,.5) 	-- Anchor point of phone
-local CORNER_RADIUS = UDim.new(.125,0) 		-- Corner radius of the phone
-local ASPECT_RATIO = .49			-- Aspect ratio of the phone (9:16 is .52) (9:19.5 is .49)
-local PHONE_COLOR = Color3.new(0, 0, 0)		-- Color of phone case
-local CASE_THICKNESS = 3			-- Phone case thickness
-local POWER_COLOR = Color3.new(0, 0, 0)		-- Power button color
-local VOLUME_COLOR = Color3.new(0, 0, 0)	-- Volume button color
-
--- UI defaults
-local APP_GRID_X = 4
-local APP_GRID_Y = 6
-
-local GRID_PAD_X = .2
-local GRID_PAD_Y = .2
-
--- Device Defaults
-local DEFAULT_VOLUME = .5
-
--- END OF SETTINGS
-
 -- CONSTANTS
 local APP_TIMEOUT = 5		-- Time, in seconds, before OS.RegisterApp() quits and errors if app is not loaded.
 
--- THEMES
+-- TYPES
 type PhoneSettings = {
 	Size: UDim2,
 	Position: UDim2,
@@ -47,10 +22,13 @@ type Theme = "Light" | "Dark"
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local CONFIG = require(script.Parent:WaitForChild("CONFIG"))
+
 local Page = require(script:WaitForChild("Page"))
 local App = require(script:WaitForChild("App"))
 local Island = require(script:WaitForChild("Island"))
 local Gesture = require(script:WaitForChild("Gesture"))
+local Volume = require(script:WaitForChild("Volume"))
 
 local defaultApps = script:WaitForChild("DefaultApps")
 
@@ -61,25 +39,25 @@ local Spr = require(dependencies:WaitForChild("Spr"))
 local Grid = require(dependencies:WaitForChild("Grid"))
 local Signal = require(dependencies:WaitForChild("GoodSignal"))
 
-local viewport = Workspace.Camera.ViewportSize
+local viewport = Workspace.CurrentCamera.ViewportSize
 
 -- FUNCTIONS
 function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote: RemoteEvent?)	
-	
+
 	defaultApps.Parent = player.PlayerScripts
-	
+
 	-- Create a settings table
 	if phoneSettings == nil then
 		phoneSettings = {
-			Size = SIZE,
-			Position = POSITION,
-			AnchorPoint = ANCHOR_POINT,
-			CornerRadius = CORNER_RADIUS,
-			AspectRatio = ASPECT_RATIO,
-			PhoneColor = PHONE_COLOR,
-			CaseThickness = CASE_THICKNESS,
-			PowerColor = POWER_COLOR,
-			VolumeColor = VOLUME_COLOR,
+			Size = CONFIG.SIZE,
+			Position = CONFIG.POSITION,
+			AnchorPoint = CONFIG.ANCHOR_POINT,
+			CornerRadius = CONFIG.CORNER_RADIUS,
+			AspectRatio = CONFIG.ASPECT_RATIO,
+			PhoneColor = CONFIG.PHONE_COLOR,
+			CaseThickness = CONFIG.CASE_THICKNESS,
+			PowerColor = CONFIG.POWER_COLOR,
+			VolumeColor = CONFIG.VOLUME_COLOR
 		}
 	end
 
@@ -90,7 +68,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Gui = Instance.new("ScreenGui", player.PlayerGui)
 	OS.Gui.Name = "PhoneGui"
 	OS.Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	
+
 	-- Manage added sound instances
 	OS.Gui.DescendantAdded:Connect(function(descendant)
 		if descendant:IsA("Sound") then
@@ -102,43 +80,57 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	-- Set up phone frame (case)
 	OS.Frame = Instance.new("Frame", OS.Gui)
 	OS.Frame.Name = "PhoneFrame"
-	
+
 	OS.Frame.Size = phoneSettings.Size
 	OS.Frame.Position = phoneSettings.Position
 	OS.Frame.AnchorPoint = phoneSettings.AnchorPoint
 	OS.Frame.BackgroundColor3 = phoneSettings.PhoneColor
-	
+
 	OS.FrameCorner = Instance.new("UICorner", OS.Frame)
 	OS.FrameCorner.CornerRadius = phoneSettings.CornerRadius
 
 	OS.FrameRatio = Instance.new("UIAspectRatioConstraint", OS.Frame)
 	OS.FrameRatio.AspectRatio = phoneSettings.AspectRatio
-	
+
 	OS.FrameThick = Instance.new("UIStroke", OS.Frame)
 	OS.FrameThick.Thickness = phoneSettings.CaseThickness
 	OS.FrameThick.Color = phoneSettings.PhoneColor
-
+	
 	-- Set up volume and power buttons
-	OS.Volume = Volume.new(DEFAULT_VOLUME)
+	OS.Volume = Volume.new(CONFIG.DEFAULT_VOLUME)
 	OS.Volume.ButtonUp.Parent = OS.Frame
 	OS.Volume.ButtonDown.Parent = OS.Frame
-
+		
+	local posX = (phoneSettings.CaseThickness/OS.Gui.AbsoluteSize.X) / OS.Frame.Size.X.Scale
+	
 	OS.Volume.ButtonUp.AnchorPoint = Vector2.new(.5,.5)
-	OS.Volume.ButtonUp.Position = UDim2.new(1,.25)
-	OS.Volume.ButtonUp.Size = UDim2.new(phoneSettings.CaseThickness/viewport.X/2,.1)
+	OS.Volume.ButtonUp.Position = UDim2.new(1+posX,0,.25,0)
+	OS.Volume.ButtonUp.Size = UDim2.new(posX,0,0.1,0)
 	OS.Volume.ButtonUp.BackgroundColor3 = phoneSettings.VolumeColor
+	OS.Volume.ButtonUp.Text = ""
+	
+	local cornerUp = Instance.new("UICorner", OS.Volume.ButtonUp)
+	cornerUp.CornerRadius = UDim.new(1,0)
 
 	OS.Volume.ButtonDown.AnchorPoint = Vector2.new(.5,.5)
-	OS.Volume.ButtonDown.Position = UDim2.new(1,.4)
-	OS.Volume.ButtonDown.Size = UDim2.new(phoneSettings.CaseThickness/viewport.X/2,.1)
+	OS.Volume.ButtonDown.Position = UDim2.new(1+posX,0,.365,0)
+	OS.Volume.ButtonDown.Size = UDim2.new(posX,0,.1,0)
 	OS.Volume.ButtonDown.BackgroundColor3 = phoneSettings.VolumeColor
+	OS.Volume.ButtonDown.Text = ""
+	
+	local cornerDown = Instance.new("UICorner", OS.Volume.ButtonDown)
+	cornerDown.CornerRadius = UDim.new(1,0)
 
 	OS.PowerButton = Instance.new("TextButton", OS.Frame)
 	OS.PowerButton.AnchorPoint = Vector2.new(.5,.5)
-	OS.PowerButton.Position = UDim2.new(0,.25)
-	OS.PowerButton.Size = UDim2.new(phoneSettings.CaseThickness/viewport.X/2,.1)
+	OS.PowerButton.Position = UDim2.new(0-posX,0,.25,0)
+	OS.PowerButton.Size = UDim2.new(posX,0,.1,0)
 	OS.PowerButton.BackgroundColor3 = phoneSettings.PowerColor
+	OS.PowerButton.Text = ""
 	
+	local cornerPower = Instance.new("UICorner", OS.PowerButton)
+	cornerPower.CornerRadius = UDim.new(1,0)
+
 	-- Set up phone screen
 	OS.Screen = Instance.new("CanvasGroup", OS.Frame)
 	OS.Screen.Name = "Screen"
@@ -146,10 +138,10 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Screen.Position = UDim2.new(.5,0,.5,0)
 	OS.Screen.Size = UDim2.new(1,0,1,0)
 	OS.Screen.BackgroundColor3 = Color3.new(1,1,1)
-	
+
 	OS.ScreenCorner = Instance.new("UICorner", OS.Screen)
 	OS.ScreenCorner.CornerRadius = phoneSettings.CornerRadius
-	
+
 	-- Create homescreen frame
 	OS.Homescreen = Instance.new("CanvasGroup", OS.Screen)
 	OS.Homescreen.Name = "Homescreen"
@@ -157,7 +149,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Homescreen.Position = UDim2.new(.5,0,.5,0)
 	OS.Homescreen.Size = UDim2.new(1,0,1,0)
 	OS.Homescreen.BackgroundTransparency = 1
-	
+
 	OS.HomeBackground = Instance.new("ImageLabel", OS.Homescreen)
 	OS.HomeBackground.Name = "Background"
 	OS.HomeBackground.AnchorPoint = Vector2.new(.5,.5)
@@ -170,13 +162,13 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Island.Frame.Parent = OS.Screen
 
 	OS.IslandInset = OS.Island.Frame.Position.Y.Scale + OS.Island.Frame.Size.Y.Scale
-	
+
 	-- Set up gesture bar (home button at bottom of screen)
 	OS.Gesture = Gesture.new()
 	OS.Gesture.Button.Parent = OS.Screen
 
-	OS.GestureInset = OS.Gesture.Button.Position.Y.Scale + OS.Gesture.Button.Size.Y.Scale
-	
+	OS.GestureInset = 1 - OS.Gesture.Button.Position.Y.Scale + OS.Gesture.Button.Size.Y.Scale
+
 	OS.Gesture.GestureClicked:Connect(function()
 		for i, v in OS.Apps do
 			v:CloseApp()
@@ -184,55 +176,55 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 			OS.Spring(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(1,1,1)})
 		end
 	end)
-	
+
 	-- Create a homescreen page
 	OS.Pages = {
-		[1] = Page.new(OS.Homescreen)
+		[1] = Page.new(OS.Homescreen, OS.IslandInset, OS.GestureInset)
 	}
 	OS.CurrentPage = 1
-	
+
 	OS.Grids = {
-		[1] = Grid.new(6, 4, Vector2.new(.2,.1), Vector2.new(.2,.4))
+		[1] = Grid.new(OS.Pages[1].Frame, Vector2.new(CONFIG.APP_GRID_X,CONFIG.APP_GRID_Y), Vector2.new(CONFIG.GRID_PAD_X,CONFIG.GRID_PAD_Y), OS.Pages[1].GridFrame)
 	}
-	
+
 	-- Create table for all registered apps
 	OS.Apps = {}
 end
 
 function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme: Theme): typeof(App.new())
 	local app = App.new(name, frame, imageId)
-	
-	local timeout = TIMEOUT
-	
+
+	local timeout = APP_TIMEOUT
+
 	repeat
 		task.wait(1)
 		timeout -= 1
-		
+
 		if timeout <= 0 and not OS.Apps then
 			warn("Could not add app. App table not found.")
 			return
 		end
-		
+
 	until OS.Apps
-	
+
 	table.insert(OS.Apps, app)
-		
+
 	for i, v in OS.Grids do
 		app.Button.Size = UDim2.fromScale((1/v.X), 1/v.Y)
-		
+
 		local added = v:AddObject(app.Button)
 		if added then			
 			app.Button.Parent = OS.Pages[i].Frame
 			break
 		end
 	end
-	
+
 	app.DefaultSize = app.Button.Size
 	app.DefaultPos = app.Button.Position
-	
+
 	frame.Parent = OS.Screen
 	frame.Visible = false
-	
+
 	app.ButtonClicked:Connect(function()
 		if app.Theme == "Dark" then
 			OS.Spring(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(1,1,1)})
@@ -240,7 +232,7 @@ function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme
 			OS.Spring(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(0, 0, 0)})			
 		end
 	end)
-	
+
 	return app
 end
 
