@@ -1,5 +1,3 @@
--- @ScriptType: ModuleScript
-
 local CONFIG = {}
 
 -- Device looks
@@ -29,6 +27,7 @@ CONFIG.NOTIFICATION_ID = 0						-- Default notification sound
 CONFIG.NOTIFICATION_DURATION = 2				-- Time, in seconds, that notifications are displayed
 CONFIG.ANIMATION_SPEED = 1						-- Default animation speed
 
+CONFIG.APP_TIMEOUT = 5							-- Time, in seconds, before OS.RegisterApp() quits and errors if app is not loaded.
 CONFIG.MEDIA_TIMEOUT = 30						-- Time, in seconds, that media needs to be paused to close the media player
 
 -- Customizables
