@@ -72,8 +72,8 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	-- Manage added sound instances
 	OS.Gui.DescendantAdded:Connect(function(descendant)
 		if descendant:IsA("Sound") then
-			descendant.Volume = OS.Volume
-			table.insert(OS.SoundInstances, descendant)
+			descendant.Volume = OS.Volume.Level
+			table.insert(OS.Volume.Instances, descendant)
 		end
 	end)
 
@@ -159,7 +159,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.HomeBackground.Image = "rbxassetid://"..CONFIG.WALLPAPER_ID
 
 	-- Set up island (pill at top of screen)
-	OS.Island = Island.new(2)
+	OS.Island = Island.new(CONFIG.NOTIFICATION_DURATION, CONFIG.MEDIA_PLAY_ID, CONFIG.MEDIA_PAUSE_ID, CONFIG.MEDIA_SKIP_ID, CONFIG.MEDIA_TIMEOUT)
 	OS.Island.Frame.Parent = OS.Screen
 
 	OS.IslandInset = OS.Island.Frame.Position.Y.Scale + OS.Island.Frame.Size.Y.Scale
@@ -184,7 +184,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.CurrentPage = 1
 
 	OS.Grids = {
-		[1] = Grid.new(OS.Pages[1].Frame, Vector2.new(CONFIG.APP_GRID_X,CONFIG.APP_GRID_Y), Vector2.new(CONFIG.GRID_PAD_X,CONFIG.GRID_PAD_Y), OS.Pages[1].GridFrame)
+		[1] = Grid.new(OS.Pages[1].Frame, Vector2.new(CONFIG.APP_GRID_X,CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[1].GridFrame)
 	}
 
 	-- Create table for all registered apps
@@ -320,6 +320,16 @@ function OS.PushPermission(app: typeof(App.new()), permissionType: PermissionTyp
 
 	local declineCorner = Instance.new("UICorner", allowButton)
 	declineCorner.CornerRadius = UDim.new(.2,0)
+end
+
+function OS.PlayMedia(title: string, author: string, iconId: number, soundId: number)
+	local newSound = Instance.new("Sound", OS.Gui)
+	newSound.SoundId = "rbxassetid://"..soundId
+	
+	OS.Island:AddMedia(title, author, iconId, newSound)
+	newSound:Play()
+	
+	return newSound
 end
 
 function OS.Spring(instance: Instance, damping: number, frequency: number, properties: {[string]: any}): boolean
