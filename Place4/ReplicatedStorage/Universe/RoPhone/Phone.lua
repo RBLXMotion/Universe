@@ -1,8 +1,5 @@
 -- @ScriptType: ModuleScript
 
--- CONSTANTS
-local APP_TIMEOUT = 5		-- Time, in seconds, before OS.RegisterApp() quits and errors if app is not loaded.
-
 -- TYPES
 type PhoneSettings = {
 	Size: UDim2,
@@ -15,8 +12,6 @@ type PhoneSettings = {
 	PowerColor: Color3,
 	VolumeColor: Color3,
 }
-
-type Theme = "Light" | "Dark"
 
 -- VARIABLES
 local RunService = game:GetService("RunService")
@@ -195,13 +190,13 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.MainGestureColor = Color3.new(1,1,1)
 end
 
-function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme: Theme): typeof(App.new())
+function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme: "Light" | "Dark"): typeof(App.new())
 	local app = App.new(name, frame, imageId, theme, CONFIG.ASPECT_RATIO)
 
-	local timeout = APP_TIMEOUT
+	local timeout = CONFIG.APP_TIMEOUT
 
 	repeat
-		if timeout < APP_TIMEOUT then
+		if timeout < CONFIG.APP_TIMEOUT then
 			task.wait(1)
 		end
 		
@@ -266,7 +261,7 @@ function OS.GetApp(searchParameter: string | CanvasGroup | GuiButton): typeof(Ap
 	local app = nil
 	local timer = 0
 	
-	repeat app = GetApp() task.wait(1) timer = 1 until app ~= nil or timer == APP_TIMEOUT
+	repeat app = GetApp() task.wait(1) timer = 1 until app ~= nil or timer == CONFIG.APP_TIMEOUT
 	
 	if app == nil then
 		warn("App could not be found:", searchParameter)
