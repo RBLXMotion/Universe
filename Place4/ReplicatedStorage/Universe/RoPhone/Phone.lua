@@ -156,6 +156,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.HomeBackground.Position = UDim2.new(.5,0,.5,0)
 	OS.HomeBackground.Size = UDim2.new(2,0,1,0)
 	OS.HomeBackground.ScaleType = Enum.ScaleType.Crop
+	OS.HomeBackground.Image = "rbxassetid://"..CONFIG.WALLPAPER_ID
 
 	-- Set up island (pill at top of screen)
 	OS.Island = Island.new(2)
@@ -172,8 +173,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Gesture.GestureClicked:Connect(function()
 		for i, v in OS.Apps do
 			v:CloseApp()
-			task.wait(.01)
-			OS.Spring(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(1,1,1)})
+			OS.Spring(OS.Gesture.Button, 1, 1, {BackgroundColor3 = OS.MainGestureColor})
 		end
 	end)
 
@@ -189,22 +189,28 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 
 	-- Create table for all registered apps
 	OS.Apps = {}
+	
+	-- Device variables
+	OS.DeviceAspectRatio = phoneSettings.AspectRatio
+	OS.MainGestureColor = Color3.new(1,1,1)
 end
 
 function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme: Theme): typeof(App.new())
-	local app = App.new(name, frame, imageId)
+	local app = App.new(name, frame, imageId, theme, CONFIG.ASPECT_RATIO)
 
 	local timeout = APP_TIMEOUT
 
 	repeat
-		task.wait(1)
+		if timeout < APP_TIMEOUT then
+			task.wait(1)
+		end
+		
 		timeout -= 1
-
+		
 		if timeout <= 0 and not OS.Apps then
 			warn("Could not add app. App table not found.")
 			return
 		end
-
 	until OS.Apps
 
 	table.insert(OS.Apps, app)
@@ -238,30 +244,43 @@ end
 
 function OS.GetApp(searchParameter: string | CanvasGroup | GuiButton): typeof(App.new())
 	local searchType = typeof(searchParameter)
-
-	for i, v in OS.Apps do
-		if searchType == "string" then
-			if v.Name == searchParameter then
-				return v
-			end
-		elseif searchType == "CanvasGroup" then
-			if v.Frame == searchParameter then
-				return v
-			end
-		elseif searchType == "GuiButton" then
-			if v.Button == searchParameter then
-				return v
+	
+	local function GetApp()
+		for i, v in OS.Apps do
+			if searchType == "string" then
+				if v.Name == searchParameter then
+					return v
+				end
+			elseif searchType == "CanvasGroup" then
+				if v.Frame == searchParameter then
+					return v
+				end
+			elseif searchType == "GuiButton" then
+				if v.Button == searchParameter then
+					return v
+				end
 			end
 		end
 	end
+	
+	local app = nil
+	local timer = 0
+	
+	repeat app = GetApp() task.wait(1) timer = 1 until app ~= nil or timer == APP_TIMEOUT
+	
+	if app == nil then
+		warn("App could not be found:", searchParameter)
+	end
+	
+	return app
 end
 
-function OS.PushNotification(app: App, title: string, description: string, imageId: number, islandType: "Small" | "Large" | "Square")
-	OS.Island:Notify(app, title, description, imageId, islandType)
+function OS.PushNotification(app: App, title: string, description: string, imageId: number, islandSize: "Small" | "Large" | "Square")
+	OS.Island:Notify(app, title, description, imageId, islandSize)
 end
 
 -- WIP
-function OS.PushPermission(app: App, permissionType: PermissionType)
+function OS.PushPermission(app: typeof(App.new()), permissionType: PermissionType)
 	local frame = Instance.new("Frame", app.Frame)
 	frame.Position = UDim2.new(.5,0,.5,0)
 	frame.AnchorPoint = Vector2.new(.5,.5)
@@ -291,7 +310,7 @@ function OS.PushPermission(app: App, permissionType: PermissionType)
 	allowButton.Text = "Allow"
 
 	local allowCorner = Instance.new("UICorner", allowButton)
-	allowCorner.CornerRadius = UDim2.new(.2,0)
+	allowCorner.CornerRadius = UDim.new(.2,0)
 
 	local declineButton = Instance.new("TextButton", frame)
 	declineButton.AnchorPoint = Vector2.new(.5,.5)
@@ -300,7 +319,7 @@ function OS.PushPermission(app: App, permissionType: PermissionType)
 	declineButton.Text = "Decline"
 
 	local declineCorner = Instance.new("UICorner", allowButton)
-	declineCorner.CornerRadius = UDim2.new(.2,0)
+	declineCorner.CornerRadius = UDim.new(.2,0)
 end
 
 function OS.Spring(instance: Instance, damping: number, frequency: number, properties: {[string]: any}): boolean
