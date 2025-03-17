@@ -176,7 +176,14 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Pages = {
 		[1] = Page.new(OS.Homescreen, OS.IslandInset, OS.GestureInset)
 	}
+	
 	OS.CurrentPage = 1
+
+	RunService.RenderStepped:Connect(function()
+			local allPages = #OS.Pages
+			
+			
+	end)
 
 	OS.Grids = {
 		[1] = Grid.new(OS.Pages[1].Frame, Vector2.new(CONFIG.APP_GRID_X,CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[1].GridFrame)
@@ -210,14 +217,27 @@ function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme
 
 	table.insert(OS.Apps, app)
 
+	local foundGrid = false
+
 	for i, v in OS.Grids do
 		app.Button.Size = UDim2.fromScale((1/v.X), 1/v.Y)
 
 		local added = v:AddObject(app.Button)
 		if added then			
 			app.Button.Parent = OS.Pages[i].Frame
+			foundGrid = true
 			break
 		end
+	end
+
+	if not foundGrid then
+		local pageNum = #OS.Pages + 1
+		local gridNum = #OS.Grids + 1
+		
+		local page = OS.Pages[pageNum] = Page.new(OS.Homescreen, OS.IslandInset, OS.GestureInset)
+		local grid = OS.Grids[gridNum] = Grid.new(OS.Pages[pageNum].Frame, Vector2.new(CONFIG.APP_GRID_X, CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[pageNum].GridFrame)
+
+		grid:AddObject(app.Button)
 	end
 
 	app.DefaultSize = app.Button.Size
