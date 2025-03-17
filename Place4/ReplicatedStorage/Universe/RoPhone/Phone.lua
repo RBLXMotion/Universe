@@ -1,8 +1,5 @@
 -- @ScriptType: ModuleScript
 
--- CONSTANTS
-local APP_TIMEOUT = 5		-- Time, in seconds, before OS.RegisterApp() quits and errors if app is not loaded.
-
 -- TYPES
 type PhoneSettings = {
 	Size: UDim2,
@@ -15,8 +12,6 @@ type PhoneSettings = {
 	PowerColor: Color3,
 	VolumeColor: Color3,
 }
-
-type Theme = "Light" | "Dark"
 
 -- VARIABLES
 local RunService = game:GetService("RunService")
@@ -72,8 +67,8 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	-- Manage added sound instances
 	OS.Gui.DescendantAdded:Connect(function(descendant)
 		if descendant:IsA("Sound") then
-			descendant.Volume = OS.Volume
-			table.insert(OS.SoundInstances, descendant)
+			descendant.Volume = OS.Volume.Level
+			table.insert(OS.Volume.Instances, descendant)
 		end
 	end)
 
@@ -159,7 +154,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.HomeBackground.Image = "rbxassetid://"..CONFIG.WALLPAPER_ID
 
 	-- Set up island (pill at top of screen)
-	OS.Island = Island.new(2)
+	OS.Island = Island.new(CONFIG.NOTIFICATION_DURATION, CONFIG.MEDIA_PLAY_ID, CONFIG.MEDIA_PAUSE_ID, CONFIG.MEDIA_SKIP_ID, CONFIG.MEDIA_TIMEOUT)
 	OS.Island.Frame.Parent = OS.Screen
 
 	OS.IslandInset = OS.Island.Frame.Position.Y.Scale + OS.Island.Frame.Size.Y.Scale
@@ -184,7 +179,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.CurrentPage = 1
 
 	OS.Grids = {
-		[1] = Grid.new(OS.Pages[1].Frame, Vector2.new(CONFIG.APP_GRID_X,CONFIG.APP_GRID_Y), Vector2.new(CONFIG.GRID_PAD_X,CONFIG.GRID_PAD_Y), OS.Pages[1].GridFrame)
+		[1] = Grid.new(OS.Pages[1].Frame, Vector2.new(CONFIG.APP_GRID_X,CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[1].GridFrame)
 	}
 
 	-- Create table for all registered apps
@@ -195,13 +190,13 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.MainGestureColor = Color3.new(1,1,1)
 end
 
-function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme: Theme): typeof(App.new())
+function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme: "Light" | "Dark"): typeof(App.new())
 	local app = App.new(name, frame, imageId, theme, CONFIG.ASPECT_RATIO)
 
-	local timeout = APP_TIMEOUT
+	local timeout = CONFIG.APP_TIMEOUT
 
 	repeat
-		if timeout < APP_TIMEOUT then
+		if timeout < CONFIG.APP_TIMEOUT then
 			task.wait(1)
 		end
 		
@@ -266,7 +261,7 @@ function OS.GetApp(searchParameter: string | CanvasGroup | GuiButton): typeof(Ap
 	local app = nil
 	local timer = 0
 	
-	repeat app = GetApp() task.wait(1) timer = 1 until app ~= nil or timer == APP_TIMEOUT
+	repeat app = GetApp() task.wait(1) timer = 1 until app ~= nil or timer == CONFIG.APP_TIMEOUT
 	
 	if app == nil then
 		warn("App could not be found:", searchParameter)
@@ -320,6 +315,16 @@ function OS.PushPermission(app: typeof(App.new()), permissionType: PermissionTyp
 
 	local declineCorner = Instance.new("UICorner", allowButton)
 	declineCorner.CornerRadius = UDim.new(.2,0)
+end
+
+function OS.PlayMedia(title: string, author: string, iconId: number, soundId: number)
+	local newSound = Instance.new("Sound", OS.Gui)
+	newSound.SoundId = "rbxassetid://"..soundId
+	
+	OS.Island:AddMedia(title, author, iconId, newSound)
+	newSound:Play()
+	
+	return newSound
 end
 
 function OS.Spring(instance: Instance, damping: number, frequency: number, properties: {[string]: any}): boolean
