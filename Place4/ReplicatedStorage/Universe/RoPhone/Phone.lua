@@ -186,6 +186,9 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Apps = {}
 	
 	-- Device variables
+	OS.NotificationSound = CONFIG.NOTIFICATION_ID
+	OS.AnimationSpeed = CONFIG.ANIMATION_SPEED
+	
 	OS.DeviceAspectRatio = phoneSettings.AspectRatio
 	OS.MainGestureColor = Color3.new(1,1,1)
 end
@@ -272,6 +275,14 @@ end
 
 function OS.PushNotification(app: App, title: string, description: string, imageId: number, islandSize: "Small" | "Large" | "Square")
 	OS.Island:Notify(app, title, description, imageId, islandSize)
+	
+	local notificationSound = Instance.new("Sound", OS.Gui)
+	notificationSound.SoundId = OS.NotificationSound
+	notificationSound:Play()
+
+	notificationSound.Ended:Connect(function()
+		notificationSound:Destroy()	
+	end)
 end
 
 -- WIP
