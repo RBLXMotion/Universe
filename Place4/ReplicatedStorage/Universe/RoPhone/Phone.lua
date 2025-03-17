@@ -180,7 +180,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.CurrentPage = 1
 
 	RunService.RenderStepped:Connect(function()
-			local allPages = #OS.Pages
+		local allPages = #OS.Pages
 			
 			
 	end)
