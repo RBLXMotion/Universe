@@ -6,20 +6,20 @@ local dependencies = script.Parent:WaitForChild("Dependencies")
 local Spr = require(dependencies:WaitForChild("Spr"))
 local Signal = require(dependencies:WaitForChild("GoodSignal"))
 
-type IslandSize = "Small" | "Large" | "Square"
+local CONFIG = require(script.Parent.Parent:WaitForChild("CONFIG"))
 
 local Island = {}
 Island.__index = Island
 
-function Island.new(notificationDuration: number, playId: number, pauseId: number, skipId: number, mediaTimeout: number)
+function Island.new()
 	local self = setmetatable({}, Island)
 	
 	-- Set up Island Bar frame
 	self.Frame = Instance.new("CanvasGroup")
 	self.Frame.Name = "Island"
 	self.Frame.AnchorPoint = Vector2.new(.5,0)
-	self.Frame.Position = UDim2.new(.5,0,.015,0)
-	self.Frame.Size = UDim2.new(.375,0,.06,0)
+	self.Frame.Position = UDim2.new(.5,0,CONFIG.ISLAND_MARGIN,0)
+	self.Frame.Size = UDim2.new(CONFIG.ISLAND_SIZE.X,0,CONFIG.ISLAND_SIZE.Y,0)
 	self.Frame.ZIndex = 200
 	self.Frame.BackgroundColor3 = Color3.new(0,0,0)
 	
@@ -146,17 +146,10 @@ function Island.new(notificationDuration: number, playId: number, pauseId: numbe
 	self.Click.Visible = false
 	
 	-- Defaults
-	self.NotificationDuration = notificationDuration or 2
-	self.MediaTimeout = mediaTimeout
-	
 	self.Complete = true
 	self.MediaPlaying = false
 	
 	self.IslandBig = false
-	
-	self.PlayId = playId
-	self.PauseId = pauseId
-	self.SkipId = skipId
 	
 	self.Sound = nil :: Sound
 	self.SoundChanged = Signal.new()
@@ -167,7 +160,7 @@ end
 
 -- Main Methods
 
-function Island:Notify(app, title: string, description: string, imageId: number, islandSize: IslandSize, durationOverride: number?)
+function Island:Notify(app, title: string, description: string, imageId: number, islandSize: "Small" | "Large" | "Square", durationOverride: number?)
 	if self.Completed == false then
 		repeat task.wait() until self.Completed
 	end
@@ -239,7 +232,7 @@ function Island:Notify(app, title: string, description: string, imageId: number,
 	
 	repeat task.wait() until started
 	
-	task.wait(durationOverride or self.NotificationDuration)
+	task.wait(durationOverride or CONFIG.NOTIFICATION_DURATION)
 		
 	-- Back to normal
 	self:ResetBar()
@@ -284,7 +277,7 @@ function Island:AddMedia(title: string, author: string, iconId: number, sound: S
 		end
 	end)
 	
-	local timer = self.MediaTimeout
+	local timer = CONFIG.MEDIA_TIMOUT
 	local lastTime = 0
 	local lastSaved = 0
 
@@ -311,15 +304,15 @@ function Island:AddMedia(title: string, author: string, iconId: number, sound: S
 			if currentTime == lastTime then
 				timer -= 1
 			else
-				timer = self.MediaTimeout
+				timer = CONFIG.MEDIA_TIMEOUT
 				lastTime = currentTime
 			end
 		end
 		
 		if self.Sound.Playing then
-			self.PlayIcon.Image = "rbxassetid://"..self.PauseId
+			self.PlayIcon.Image = "rbxassetid://"..CONFIG.PAUSE_ID
 		else
-			self.PlayIcon.Image = "rbxassetid://"..self.PlayId
+			self.PlayIcon.Image = "rbxassetid://"..CONFIG.PLAT_ID
 		end
 		
 		Spr.target(self.ProgressFrame, 1, 1, {Size = UDim2.new(currentTime/totalTime,0,1,0)})
@@ -359,7 +352,7 @@ function Island:AddMedia(title: string, author: string, iconId: number, sound: S
 	
 	self:LargeMedia()
 	
-	task.wait(self.NotificationDuration)
+	task.wait(CONFIG.NOTIFICATION_DURATION)
 	
 	self.Click.Visible = true
 	
@@ -393,7 +386,7 @@ function Island:ResetBar()
 	if not self.MediaPlaying then
 		self.Click.Visible = false
 
-		Spr.target(self.Frame, 1.2, 4, {Size = UDim2.new(.375,0,.06,0)})
+		Spr.target(self.Frame, 1.2, 4, {Size = UDim2.new(CONFIG.ISLAND_SIZE.X,0,CONFIG.ISLAND_SIZE.Y,0)})
 		Spr.target(self.IslandCorner, 1.2, 4, {CornerRadius = UDim.new(1,0)})
 		Spr.target(self.Container, 1, 4, {GroupTransparency = 1})
 		Spr.target(self.MediaContainer, 1, 4, {GroupTransparency = 1})
@@ -435,20 +428,20 @@ end
 
 function Island:Small(bounce: boolean)
 	if bounce then
-		Spr.target(self.Frame, .75, 4, {Size = UDim2.new(.85,0,.06,0)})
+		Spr.target(self.Frame, .75, 4, {Size = UDim2.new(.85,0,CONFIG.ISLAND_SIZE.Y,0)})
 		Spr.target(self.IslandCorner, .75, 4, {CornerRadius = UDim.new(1,0)})
 	else
-		Spr.target(self.Frame, 1.2, 4, {Size = UDim2.new(.85,0,.06,0)})
+		Spr.target(self.Frame, 1.2, 4, {Size = UDim2.new(.85,0,CONFIG.ISLAND_SIZE.Y,0)})
 		Spr.target(self.IslandCorner, 1.2, 4, {CornerRadius = UDim.new(1,0)})
 	end
 end
 
 function Island:Square(bounce: boolean)
 	if bounce then
-		Spr.target(self.Frame, .75, 4, {Size = UDim2.new(.375,0,.175,0)})
+		Spr.target(self.Frame, .75, 4, {Size = UDim2.new(CONFIG.ISLAND_SIZE.X,0,.175,0)})
 		Spr.target(self.IslandCorner, .75, 4, {CornerRadius = UDim.new(.25,0)})
 	else
-		Spr.target(self.Frame, 1.2, 4, {Size = UDim2.new(.375,0,.175,0)})
+		Spr.target(self.Frame, 1.2, 4, {Size = UDim2.new(CONFIG.ISLAND_SIZE.X,0,.175,0)})
 		Spr.target(self.IslandCorner, 1.2, 4, {CornerRadius = UDim.new(.25,0)})
 	end
 end
