@@ -2,13 +2,7 @@
 
 -- TYPES
 type PhoneSettings = {
-	Size: UDim2,
-	Position: UDim2,
-	AnchorPoint: Vector2,
-	CornerRadius: UDim,
-	AspectRatio: number,
 	PhoneColor: Color3,
-	CaseThickness: number,
 	PowerColor: Color3,
 	VolumeColor: Color3,
 }
@@ -44,13 +38,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	-- Create a settings table
 	if phoneSettings == nil then
 		phoneSettings = {
-			Size = CONFIG.SIZE,
-			Position = CONFIG.POSITION,
-			AnchorPoint = CONFIG.ANCHOR_POINT,
-			CornerRadius = CONFIG.CORNER_RADIUS,
-			AspectRatio = CONFIG.ASPECT_RATIO,
 			PhoneColor = CONFIG.PHONE_COLOR,
-			CaseThickness = CONFIG.CASE_THICKNESS,
 			PowerColor = CONFIG.POWER_COLOR,
 			VolumeColor = CONFIG.VOLUME_COLOR
 		}
@@ -76,19 +64,19 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Frame = Instance.new("Frame", OS.Gui)
 	OS.Frame.Name = "PhoneFrame"
 
-	OS.Frame.Size = phoneSettings.Size
-	OS.Frame.Position = phoneSettings.Position
-	OS.Frame.AnchorPoint = phoneSettings.AnchorPoint
+	OS.Frame.Size = CONFIG.SIZE
+	OS.Frame.Position = CONFIG.POSITION
+	OS.Frame.AnchorPoint = CONFIG.ANCHOR_POINT
 	OS.Frame.BackgroundColor3 = phoneSettings.PhoneColor
 
 	OS.FrameCorner = Instance.new("UICorner", OS.Frame)
-	OS.FrameCorner.CornerRadius = phoneSettings.CornerRadius
+	OS.FrameCorner.CornerRadius = CONFIG.CORNER_RADIUS
 
 	OS.FrameRatio = Instance.new("UIAspectRatioConstraint", OS.Frame)
-	OS.FrameRatio.AspectRatio = phoneSettings.AspectRatio
+	OS.FrameRatio.AspectRatio = CONFIG.ASPECT_RATIO
 
 	OS.FrameThick = Instance.new("UIStroke", OS.Frame)
-	OS.FrameThick.Thickness = phoneSettings.CaseThickness
+	OS.FrameThick.Thickness = CONFIG.THICKNESS
 	OS.FrameThick.Color = phoneSettings.PhoneColor
 	
 	-- Set up volume and power buttons
@@ -96,7 +84,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Volume.ButtonUp.Parent = OS.Frame
 	OS.Volume.ButtonDown.Parent = OS.Frame
 		
-	local posX = (phoneSettings.CaseThickness/OS.Gui.AbsoluteSize.X) / OS.Frame.Size.X.Scale
+	local posX = (CONFIG.THICKNESS/OS.Gui.AbsoluteSize.X) / OS.Frame.Size.X.Scale
 	
 	OS.Volume.ButtonUp.AnchorPoint = Vector2.new(.5,.5)
 	OS.Volume.ButtonUp.Position = UDim2.new(1+posX,0,.25,0)
@@ -135,7 +123,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Screen.BackgroundColor3 = Color3.new(1,1,1)
 
 	OS.ScreenCorner = Instance.new("UICorner", OS.Screen)
-	OS.ScreenCorner.CornerRadius = phoneSettings.CornerRadius
+	OS.ScreenCorner.CornerRadius = CONFIG.CORNER_RADIUS
 
 	-- Create homescreen frame
 	OS.Homescreen = Instance.new("CanvasGroup", OS.Screen)
@@ -161,13 +149,13 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Island = Island.new(CONFIG.NOTIFICATION_DURATION, CONFIG.MEDIA_PLAY_ID, CONFIG.MEDIA_PAUSE_ID, CONFIG.MEDIA_SKIP_ID, CONFIG.MEDIA_TIMEOUT)
 	OS.Island.Frame.Parent = OS.Screen
 
-	OS.IslandInset = OS.Island.Frame.Position.Y.Scale + OS.Island.Frame.Size.Y.Scale
+	OS.IslandInset = CONFIG.ISLAND_MARGIN + CONFIG.ISLAND_SIZE.Y
 
 	-- Set up gesture bar (home button at bottom of screen)
 	OS.Gesture = Gesture.new()
 	OS.Gesture.Button.Parent = OS.Screen
 
-	OS.GestureInset = 1 - OS.Gesture.Button.Position.Y.Scale + OS.Gesture.Button.Size.Y.Scale
+	OS.GestureInset = CONFIG.GESTURE_MARGIN + CONFIG.GESTURE_SIZE.Y
 
 	OS.Gesture.GestureClicked:Connect(function()
 		for i, v in OS.Apps do
