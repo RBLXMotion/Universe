@@ -153,6 +153,10 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.HomeBackground.ScaleType = Enum.ScaleType.Crop
 	OS.HomeBackground.Image = "rbxassetid://"..CONFIG.WALLPAPER_ID
 
+	OS.PageDotsFrame = Instance.new("CanvasGroup", OS.Homescreen)
+	OS.PageDotsFrame.Name = "PageDots"
+	OS.PageDotsFrame.Position
+
 	-- Set up island (pill at top of screen)
 	OS.Island = Island.new(CONFIG.NOTIFICATION_DURATION, CONFIG.MEDIA_PLAY_ID, CONFIG.MEDIA_PAUSE_ID, CONFIG.MEDIA_SKIP_ID, CONFIG.MEDIA_TIMEOUT)
 	OS.Island.Frame.Parent = OS.Screen
@@ -178,12 +182,6 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	}
 	
 	OS.CurrentPage = 1
-
-	RunService.RenderStepped:Connect(function()
-		local allPages = #OS.Pages
-			
-			
-	end)
 
 	OS.Grids = {
 		[1] = Grid.new(OS.Pages[1].Frame, Vector2.new(CONFIG.APP_GRID_X,CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[1].GridFrame)
