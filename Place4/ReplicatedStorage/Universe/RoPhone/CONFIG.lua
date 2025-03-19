@@ -31,6 +31,11 @@ CONFIG.DOCK_APPS = 4							-- Max number of apps allowed in the Dock
 CONFIG.INFO_BAR_SIZE = Vector2.new(.25,.04)
 CONFIG.INFO_BAR_MARGIN = .015
 
+CONFIG.DOCK_MARGIN = .015                        -- Space between top of Gesture Bar and bottom of Dock
+CONFIG.DOCK_SIZE = Vector2.new(.9,.1)             -- Size of the Dock on the homescreen
+
+CONFIG.PAGE_DOT_SIZE = Vector2.new(.5,.025)
+
 CONFIG.MEDIA_PLAY_ID = 91627705357741			-- Play button image ID (Island media)
 CONFIG.MEDIA_PAUSE_ID = 105425577870678			-- Pause button image ID (Island media)
 CONFIG.MEDIA_SKIP_ID = 131609719356033			-- Skip button image ID (Island media)

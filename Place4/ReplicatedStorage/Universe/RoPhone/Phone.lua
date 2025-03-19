@@ -3,6 +3,7 @@
 -- TYPES
 type PhoneSettings = {
 	PhoneColor: Color3,
+	PowerColor: Color3,
 	CaseThickness: number,
 	VolumeColor: Color3,
 }
@@ -145,6 +146,10 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.HomeBackground.ScaleType = Enum.ScaleType.Crop
 	OS.HomeBackground.Image = "rbxassetid://"..CONFIG.WALLPAPER_ID
 
+	OS.PageDotsFrame = Instance.new("CanvasGroup", OS.Homescreen)
+	OS.PageDotsFrame.Name = "PageDots"
+	OS.PageDotsFrame.Position
+
 	-- Set up island (pill at top of screen)
 	OS.Island = Island.new()
 	OS.Island.Frame.Parent = OS.Screen
@@ -226,6 +231,8 @@ function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme
 	
 	local foundGrid = false
 
+	local foundGrid = false
+
 	for i, v in OS.Grids do
 		app.Button.Size = UDim2.fromScale((1/v.X), 1/v.Y)
 
@@ -246,6 +253,16 @@ function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme
 		OS.Grids[gridNum] = Grid.new(OS.Pages[pageNum].Frame, Vector2.new(CONFIG.APP_GRID_X, CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[pageNum].GridFrame)
 
 		OS.Grids[gridNum]:AddObject(app.Button)
+	end
+
+	if not foundGrid then
+		local pageNum = #OS.Pages + 1
+		local gridNum = #OS.Grids + 1
+		
+		local page = OS.Pages[pageNum] = Page.new(OS.Homescreen, OS.IslandInset, OS.GestureInset)
+		local grid = OS.Grids[gridNum] = Grid.new(OS.Pages[pageNum].Frame, Vector2.new(CONFIG.APP_GRID_X, CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[pageNum].GridFrame)
+
+		grid:AddObject(app.Button)
 	end
 
 	app.DefaultSize = app.Button.Size
