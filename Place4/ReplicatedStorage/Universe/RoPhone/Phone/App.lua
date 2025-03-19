@@ -4,10 +4,12 @@ local dependencies = script.Parent:WaitForChild("Dependencies")
 local Spr = require(dependencies:WaitForChild("Spr"))
 local Signal = require(dependencies:WaitForChild("GoodSignal"))
 
+type Theme = "Light" | "Dark"
+
 local App = {}
 App.__index = App
 
-function App.new(name: string, frame: CanvasGroup, imageId: number, theme: "Light" | "Dark", aspectRatio: number)
+function App.new(name: string, frame: CanvasGroup, imageId: number, theme: Theme, aspectRatio: number)
 	local self = setmetatable({}, App)
 
 	self.Name = name
@@ -33,21 +35,15 @@ function App.new(name: string, frame: CanvasGroup, imageId: number, theme: "Ligh
 	
 	self.ButtonRatio = Instance.new("UIAspectRatioConstraint", self.Button)
 	self.ButtonRatio.AspectRatio = 1
-
-	self.AppTitle = Instance.new("TextLabel", self.Button)
-	self.AppTitle.AnchorPoint = Vector2.new(.5,0)
-	self.AppTitle.Position = UDim2.new(.5,0,1.15,0)
-	self.AppTitle.Size = UDim2.new(1,0,.2,0)
-	self.AppTitle.Font = Enum.Font.BuilderSans
-	self.AppTitle.TextScaled = true
-	self.AppTitle.Text = name
 	
 	self.DefaultPos = UDim2.new()
 	self.DefaultSize = UDim2.new()
+	self.GridPos = Vector2.new()
 
 	self.ButtonClicked = self.Button.MouseButton1Click
 
 	self.Open = false
+	self.Opened = Signal.new()
 	
 	self.Theme = theme
 	
@@ -81,6 +77,10 @@ function App:OpenApp()
 	Spr.target(self.FrameCorner, 1, 2, {CornerRadius = UDim.new(.125,0)})
 
 	self.Open = true
+	
+	Spr.completed(self.FrameCorner, function()
+		self.Opened:Fire()
+	end)
 end
 
 function App:CloseApp()
