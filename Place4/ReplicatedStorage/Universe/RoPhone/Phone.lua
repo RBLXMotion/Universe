@@ -180,12 +180,12 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	end)
 
 	-- Create a homescreen page
-	OS.Pages = {
-		[1] = Page.new(OS.Homescreen)
-	}
+	OS.Homescreen = Homescreen.new()
 	
-	OS.CurrentPage = 1
-
+	OS.Homescreen.PageAdded:Connect(function()
+		
+	end
+	
 	OS.Grids = {
 		[1] = Grid.new(OS.Pages[1].Frame, Vector2.new(CONFIG.APP_GRID_X,CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[1].GridFrame)
 	}
