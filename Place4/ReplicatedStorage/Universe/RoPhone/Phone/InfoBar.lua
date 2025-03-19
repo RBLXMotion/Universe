@@ -2,6 +2,8 @@
 
 local CONFIG = require(script.Parent.Parent:WaitForChild("CONFIG"))
 
+local Spring = require(script.Parent:WaitForChild("Spring"))
+
 local InfoBar = {}
 InfoBar.__index = InfoBar
 
@@ -26,9 +28,38 @@ function InfoBar.new()
 	self.PageDots.AnchorPoint = Vector2.new(.5,.5)
 	self.PageDots.BackgroundTransparency = 1
 
-	self.PageDotsButtonSize = UDim2.new(1/CONFIG.MAX_PAGES)
+	self.DotsConstainerSize = UDim2.new((CONFIG.INFO_BAR_SIZE.X + (.2 * CONFIG.INFO_BAR_SIZE.X)) * CONFIG.INFO_BAR_SIZE.X + CONFIG.DOT_SPACING)
+
+	self.Dots = {}
 	
 	return self
+end
+
+function InfoBar:AddPageDot()
+	local finalDotSizeX = .2 - CONFIG.DOT_SPACING
+	local initialPosX = 0
+	
+	local newDot = Instance.new("TextButton", self.PageDots)
+	newDot.Size = UDim2.new(finalDotSizeX,0,.7,0)
+	newDot.AnchorPoint = Vector2.new(.5,.5)
+	newDot.BackgroundColor3 = Color3.new(1,1,1)
+
+	local corner = Instance.new("UICorner", newDot)
+	corner.CornerRadius = UDim.new(1,0)
+
+	local ratio = Instance.new("UIAspectRatioConstraint", newDot)
+	ratio.AspectRatio = 1
+	
+	table.insert(self.Dots, newDot)
+	
+	for i, v in ipairs(self.Dots) do
+		initialPos = finalDotSizeX * i
+	end
+
+	local finalPos = UDim2.new(self.Button.Position.X.Scale - self.Button.Size.X.Scale + initialPos/2,0,.5,0)
+	
+	local posSpring = Spring.new(self.Button, 1, 3, {Position = finalPos})
+	posSpring:Play()
 end
 
 return InfoBar
