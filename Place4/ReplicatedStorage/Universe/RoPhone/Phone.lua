@@ -4,12 +4,14 @@
 type PhoneSettings = {
 	PhoneColor: Color3,
 	PowerColor: Color3,
+	CaseThickness: number,
 	VolumeColor: Color3,
 }
 
 -- VARIABLES
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
 
 local CONFIG = require(script.Parent:WaitForChild("CONFIG"))
 
@@ -18,6 +20,9 @@ local App = require(script:WaitForChild("App"))
 local Island = require(script:WaitForChild("Island"))
 local Gesture = require(script:WaitForChild("Gesture"))
 local Volume = require(script:WaitForChild("Volume"))
+local Dock = require(script:WaitForChild("Dock"))
+local Spring = require(script:WaitForChild("Spring"))
+local InfoBar = require(script:WaitForChild("InfoBar"))
 
 local defaultApps = script:WaitForChild("DefaultApps")
 
@@ -146,7 +151,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.PageDotsFrame.Position
 
 	-- Set up island (pill at top of screen)
-	OS.Island = Island.new(CONFIG.NOTIFICATION_DURATION, CONFIG.MEDIA_PLAY_ID, CONFIG.MEDIA_PAUSE_ID, CONFIG.MEDIA_SKIP_ID, CONFIG.MEDIA_TIMEOUT)
+	OS.Island = Island.new()
 	OS.Island.Frame.Parent = OS.Screen
 
 	OS.IslandInset = CONFIG.ISLAND_MARGIN + CONFIG.ISLAND_SIZE.Y
@@ -159,14 +164,24 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 
 	OS.Gesture.GestureClicked:Connect(function()
 		for i, v in OS.Apps do
-			v:CloseApp()
-			OS.Spring(OS.Gesture.Button, 1, 1, {BackgroundColor3 = OS.MainGestureColor})
+			task.spawn(function()
+				v:CloseApp()
+				
+				OS.Homescreen.Visible = true
+				
+				local newSpring = Spring.new(OS.Gesture.Button, 1, 5, {BackgroundTransparency = 1})
+				newSpring:Play()
+				
+				newSpring.Completed:Wait()
+				
+				OS.Gesture.Button.Visible = false
+			end)
 		end
 	end)
 
 	-- Create a homescreen page
 	OS.Pages = {
-		[1] = Page.new(OS.Homescreen, OS.IslandInset, OS.GestureInset)
+		[1] = Page.new(OS.Homescreen)
 	}
 	
 	OS.CurrentPage = 1
@@ -174,13 +189,24 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 	OS.Grids = {
 		[1] = Grid.new(OS.Pages[1].Frame, Vector2.new(CONFIG.APP_GRID_X,CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[1].GridFrame)
 	}
+	
+	OS.Dock = Dock.new(OS.Homescreen)
+	OS.DockGrid = Grid.new(OS.Homescreen, Vector2.new(CONFIG.DOCK_APPS, 1), Vector2.new(CONFIG.APP_GRID_SPACING, 0), OS.Dock.Frame, .075, .3)
+	
+	OS.InfoBar = InfoBar.new()
+	OS.InfoBar.Button.Parent = OS.Homescreen
 
 	-- Create table for all registered apps
 	OS.Apps = {}
 	
 	-- Device variables
+	OS.NotificationSound = CONFIG.NOTIFICATION_ID
+	OS.AnimationSpeed = CONFIG.ANIMATION_SPEED
+	
 	OS.DeviceAspectRatio = phoneSettings.AspectRatio
 	OS.MainGestureColor = Color3.new(1,1,1)
+	
+	OS.Spring = Spring
 end
 
 function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme: "Light" | "Dark"): typeof(App.new())
@@ -202,18 +228,31 @@ function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme
 	until OS.Apps
 
 	table.insert(OS.Apps, app)
+	
+	local foundGrid = false
 
 	local foundGrid = false
 
 	for i, v in OS.Grids do
 		app.Button.Size = UDim2.fromScale((1/v.X), 1/v.Y)
 
-		local added = v:AddObject(app.Button)
+		local added, gridPos = v:AddObject(app.Button)
 		if added then			
 			app.Button.Parent = OS.Pages[i].Frame
+			app.GridPos = gridPos
 			foundGrid = true
 			break
 		end
+	end
+	
+	if not foundGrid then
+		local pageNum = #OS.Pages + 1
+		local gridNum = #OS.Grids + 1
+
+		OS.Pages[pageNum] = Page.new(OS.Homescreen, OS.IslandInset, OS.GestureInset)
+		OS.Grids[gridNum] = Grid.new(OS.Pages[pageNum].Frame, Vector2.new(CONFIG.APP_GRID_X, CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[pageNum].GridFrame)
+
+		OS.Grids[gridNum]:AddObject(app.Button)
 	end
 
 	if not foundGrid then
@@ -233,11 +272,41 @@ function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme
 	frame.Visible = false
 
 	app.ButtonClicked:Connect(function()
+		OS.Gesture.Button.Parent = app.Frame
+		OS.Gesture.Button.BackgroundTransparency = 1
+		OS.Gesture.Button.Visible = true
+		
 		if app.Theme == "Dark" then
-			OS.Spring(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(1,1,1)})
+			local newSpring = Spring.new(OS.Gesture.Button, 1, 3, {BackgroundColor3 = Color3.new(1,1,1), BackgroundTransparency = 0})
+			newSpring:Play()
 		else
-			OS.Spring(OS.Gesture.Button, 1, 1, {BackgroundColor3 = Color3.new(0, 0, 0)})			
+			local newSpring = Spring.new(OS.Gesture.Button, 1, 3, {BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0})
+			newSpring:Play()
 		end
+	end)
+	
+	app.Button.MouseButton2Click:Connect(function()
+		local originalSize = app.Button.Size
+		app.Button.Size = UDim2.new(1/CONFIG.DOCK_APPS,0,1,0)
+		
+		local added, gridPos = OS.DockGrid:AddObject(app.Button)
+		
+		if not added then
+			app.Button.Size = originalSize
+			return
+		end
+		
+		OS.Grids[1]:RemoveObject(app.GridPos)
+		
+		app.DefaultSize = app.Button.Size
+		app.DefaultPos = app.Button.Position
+		app.GridPos = gridPos
+				
+		app.Button.Parent = OS.Homescreen
+	end)
+	
+	app.Opened:Connect(function()
+		OS.Homescreen.Visible = false
 	end)
 
 	return app
@@ -277,68 +346,26 @@ function OS.GetApp(searchParameter: string | CanvasGroup | GuiButton): typeof(Ap
 end
 
 function OS.PushNotification(app: App, title: string, description: string, imageId: number, islandSize: "Small" | "Large" | "Square")
+	local notificationSound = Instance.new("Sound", OS.Gui)
+	notificationSound.SoundId = "rbxassetid://"..OS.NotificationSound
+	notificationSound.Volume = OS.Volume.Level
+	notificationSound:Play()
+	
+	notificationSound.Ended:Connect(function()
+		notificationSound:Destroy()	
+	end)
+	
 	OS.Island:Notify(app, title, description, imageId, islandSize)
-end
-
--- WIP
-function OS.PushPermission(app: typeof(App.new()), permissionType: PermissionType)
-	local frame = Instance.new("Frame", app.Frame)
-	frame.Position = UDim2.new(.5,0,.5,0)
-	frame.AnchorPoint = Vector2.new(.5,.5)
-	frame.Size = UDim2.new(.75,0,.5,0)
-	frame.ZIndex = 100000
-	frame.BackgroundColor3 = Color3.new(.1,.1,.1)
-
-	local corner = Instance.new("UICorner", frame)
-	corner.CornerRadius = UDim.new(.15,0)
-
-	local title = Instance.new("TextLabel", frame)
-	title.AnchorPoint = Vector2.new(.5,.5)
-	title.Position = UDim2.new(.5,0,.15,0)
-	title.Size = UDim2.new(.9,0,.2,0)
-	title.Text = "Title"
-
-	local description = Instance.new("TextLabel", frame)
-	description.AnchorPoint = Vector2.new(.5,.5)
-	description.Position = UDim2.new(.5,0,.5,0)
-	description.Size = UDim2.new(.9,0,.4,0)
-	description.Text = `Allow {app.Name} to access {permissionType}?`
-
-	local allowButton = Instance.new("TextButton", frame)
-	allowButton.AnchorPoint = Vector2.new(.5,.5)
-	allowButton.Position = UDim2.new(.5,0.6,0)
-	allowButton.Size = UDim2.new(.9,0,.2,0)
-	allowButton.Text = "Allow"
-
-	local allowCorner = Instance.new("UICorner", allowButton)
-	allowCorner.CornerRadius = UDim.new(.2,0)
-
-	local declineButton = Instance.new("TextButton", frame)
-	declineButton.AnchorPoint = Vector2.new(.5,.5)
-	declineButton.Position = UDim2.new(.5,0.85,0)
-	declineButton.Size = UDim2.new(.9,0,.2,0)
-	declineButton.Text = "Decline"
-
-	local declineCorner = Instance.new("UICorner", allowButton)
-	declineCorner.CornerRadius = UDim.new(.2,0)
 end
 
 function OS.PlayMedia(title: string, author: string, iconId: number, soundId: number)
 	local newSound = Instance.new("Sound", OS.Gui)
 	newSound.SoundId = "rbxassetid://"..soundId
 	
-	OS.Island:AddMedia(title, author, iconId, newSound)
 	newSound:Play()
+	OS.Island:AddMedia(title, author, iconId, newSound)
 	
 	return newSound
-end
-
-function OS.Spring(instance: Instance, damping: number, frequency: number, properties: {[string]: any}): boolean
-	Spr.target(instance, damping, frequency, properties)
-
-	Spr.completed(instance, function()
-		return true
-	end)
 end
 
 return OS

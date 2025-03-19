@@ -148,7 +148,6 @@ function Island.new()
 	-- Defaults
 	self.Complete = true
 	self.MediaPlaying = false
-	
 	self.IslandBig = false
 	
 	self.Sound = nil :: Sound
@@ -198,7 +197,7 @@ function Island:Notify(app, title: string, description: string, imageId: number,
 		self.Description.Position = UDim2.new(self.Icon.Position.X.Scale + (self.Icon.Size.X.Scale/2) + .05,0,.75,0)
 		self.Description.TextYAlignment = Enum.TextYAlignment.Top
 		
-		self:Large(true)
+		self:Large(.75)
 		self:ShowContainer(true)
 	elseif islandSize == "Small" then
 		self.Icon.Size = UDim2.new(.2,0,.8,0)
@@ -210,7 +209,7 @@ function Island:Notify(app, title: string, description: string, imageId: number,
 
 		self.Description.Visible = false
 		
-		self:Small(true)
+		self:Small(.75)
 		self:ShowContainer(true)
 	elseif islandSize == "Square" then
 		self.Icon.Position = UDim2.new(.5,0,.5,0)
@@ -219,7 +218,7 @@ function Island:Notify(app, title: string, description: string, imageId: number,
 		self.Title.Visible = false
 		self.Description.Visible = false
 		
-		self:Square(true)
+		self:Square(.75)
 		self:ShowContainer(true)
 	end
 	
@@ -277,7 +276,7 @@ function Island:AddMedia(title: string, author: string, iconId: number, sound: S
 		end
 	end)
 	
-	local timer = CONFIG.MEDIA_TIMOUT
+	local timer = CONFIG.MEDIA_TIMEOUT
 	local lastTime = 0
 	local lastSaved = 0
 
@@ -310,9 +309,9 @@ function Island:AddMedia(title: string, author: string, iconId: number, sound: S
 		end
 		
 		if self.Sound.Playing then
-			self.PlayIcon.Image = "rbxassetid://"..CONFIG.PAUSE_ID
+			self.PlayIcon.Image = "rbxassetid://"..CONFIG.MEDIA_PAUSE_ID
 		else
-			self.PlayIcon.Image = "rbxassetid://"..CONFIG.PLAT_ID
+			self.PlayIcon.Image = "rbxassetid://"..CONFIG.MEDIA_PLAY_ID
 		end
 		
 		Spr.target(self.ProgressFrame, 1, 1, {Size = UDim2.new(currentTime/totalTime,0,1,0)})
@@ -348,7 +347,7 @@ function Island:AddMedia(title: string, author: string, iconId: number, sound: S
 	-- Display full
 	repeat task.wait() until self.Complete
 	
-	self.PlayIcon.Image = "rbxassetid://"..self.PauseId
+	self.PlayIcon.Image = "rbxassetid://"..CONFIG.MEDIA_PAUSE_ID
 	
 	self:LargeMedia()
 	
@@ -368,6 +367,7 @@ function Island:AddMedia(title: string, author: string, iconId: number, sound: S
 
 		RunService:UnbindFromRenderStep("IslandMedia")
 		playConnection:Disconnect()
+		clickConnection:Disconnect()
 		
 		return
 	end)
@@ -412,52 +412,35 @@ function Island:ResetBar()
 		self.MediaTitle.Size = UDim2.new(.65,0,.8,0)
 		self.MediaTitle.TextYAlignment = Enum.TextYAlignment.Center
 
-		self:SmallMedia(false)
+		self:SmallMedia(1.2)
 	end
 end
 
-function Island:Large(bounce: boolean)
-	if bounce then
-		Spr.target(self.Frame, .75, 4, {Size = UDim2.new(.95,0,.2,0)})
-		Spr.target(self.IslandCorner, .75, 4, {CornerRadius = UDim.new(.25,0)})
-	else
-		Spr.target(self.Frame, 1.2, 4, {Size = UDim2.new(.95,0,.2,0)})
-		Spr.target(self.IslandCorner, 1.2, 4, {CornerRadius = UDim.new(.25,0)})
-	end
+function Island:Large(damping: boolean)
+	Spr.target(self.Frame, damping, 4, {Size = UDim2.new(.95,0,.2,0)})
+	Spr.target(self.IslandCorner, damping, 4, {CornerRadius = UDim.new(.25,0)})
 end
 
-function Island:Small(bounce: boolean)
-	if bounce then
-		Spr.target(self.Frame, .75, 4, {Size = UDim2.new(.85,0,CONFIG.ISLAND_SIZE.Y,0)})
-		Spr.target(self.IslandCorner, .75, 4, {CornerRadius = UDim.new(1,0)})
-	else
-		Spr.target(self.Frame, 1.2, 4, {Size = UDim2.new(.85,0,CONFIG.ISLAND_SIZE.Y,0)})
-		Spr.target(self.IslandCorner, 1.2, 4, {CornerRadius = UDim.new(1,0)})
-	end
+function Island:Small(damping: number)
+	Spr.target(self.Frame, damping, 4, {Size = UDim2.new(.85,0,CONFIG.ISLAND_SIZE.Y,0)})
+	Spr.target(self.IslandCorner, damping, 4, {CornerRadius = UDim.new(1,0)})
 end
 
-function Island:Square(bounce: boolean)
-	if bounce then
-		Spr.target(self.Frame, .75, 4, {Size = UDim2.new(CONFIG.ISLAND_SIZE.X,0,.175,0)})
-		Spr.target(self.IslandCorner, .75, 4, {CornerRadius = UDim.new(.25,0)})
-	else
-		Spr.target(self.Frame, 1.2, 4, {Size = UDim2.new(CONFIG.ISLAND_SIZE.X,0,.175,0)})
-		Spr.target(self.IslandCorner, 1.2, 4, {CornerRadius = UDim.new(.25,0)})
-	end
+function Island:Square(damping: boolean)
+	Spr.target(self.Frame, damping, 4, {Size = UDim2.new(CONFIG.ISLAND_SIZE.X,0,.175,0)})
+	Spr.target(self.IslandCorner, damping, 4, {CornerRadius = UDim.new(.25,0)})
 end
 
 function Island:ShowContainer(notification: boolean)
-	if notification then
-		Spr.target(self.Container, 1, 4, {GroupTransparency = 0})
-		Spr.target(self.MediaContainer, 1, 4, {GroupTransparency = 1})
-	else
-		Spr.target(self.Container, 1, 4, {GroupTransparency = 1})
-		Spr.target(self.MediaContainer, 1, 4, {GroupTransparency = 0})
-	end
+	local containerTransparency = notification and 0 or 1
+	local mediaTransparency = notification and 1 or 0
+	
+	Spr.target(self.Container, 1, 4, {GroupTransparency = containerTransparency})
+	Spr.target(self.MediaContainer, 1, 4, {GroupTransparency = mediaTransparency})
 end
 
 function Island:LargeMedia()
-	self:Large(false)
+	self:Large(1.2)
 	self:ShowContainer(false)
 
 	Spr.target(self.ProgressContainer, 1, 4, {GroupTransparency = 0})
@@ -468,7 +451,7 @@ function Island:LargeMedia()
 end
 
 function Island:SmallMedia()
-	self:Small(false)
+	self:Small(1.2)
 	self:ShowContainer(false)
 
 	Spr.target(self.ProgressContainer, 1, 10, {GroupTransparency = 1})

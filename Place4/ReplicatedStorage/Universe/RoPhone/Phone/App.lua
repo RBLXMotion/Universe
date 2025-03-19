@@ -38,10 +38,12 @@ function App.new(name: string, frame: CanvasGroup, imageId: number, theme: Theme
 	
 	self.DefaultPos = UDim2.new()
 	self.DefaultSize = UDim2.new()
+	self.GridPos = Vector2.new()
 
 	self.ButtonClicked = self.Button.MouseButton1Click
 
 	self.Open = false
+	self.Opened = Signal.new()
 	
 	self.Theme = theme
 	
@@ -75,6 +77,10 @@ function App:OpenApp()
 	Spr.target(self.FrameCorner, 1, 2, {CornerRadius = UDim.new(.125,0)})
 
 	self.Open = true
+	
+	Spr.completed(self.FrameCorner, function()
+		self.Opened:Fire()
+	end)
 end
 
 function App:CloseApp()
