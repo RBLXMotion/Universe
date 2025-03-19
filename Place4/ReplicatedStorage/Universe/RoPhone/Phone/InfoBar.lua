@@ -19,6 +19,14 @@ function InfoBar.new()
 	
 	self.Corner = Instance.new("UICorner", self.Button)
 	self.Corner.CornerRadius = UDim.new(1,0)
+
+	self.PageDots = Instance.new("CanvasGroup", self.Button)
+	self.PageDots.Size = UDim2.new(1,0,1,0)
+	self.PageDots.Position = UDim2.new(.5,0,.5,0)
+	self.PageDots.AnchorPoint = Vector2.new(.5,.5)
+	self.PageDots.BackgroundTransparency = 1
+
+	self.PageDotsButtonSize = UDim2.new(1/CONFIG.MAX_PAGES)
 	
 	return self
 end
