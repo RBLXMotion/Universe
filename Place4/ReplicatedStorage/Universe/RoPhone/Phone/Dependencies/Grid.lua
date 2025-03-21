@@ -29,7 +29,7 @@ function Grid.new(parent: GuiObject, gridSize: Vector2, spacing: Vector2, constr
 			self.Grid[i][j] = false
 		end
 	end
-
+	
 	return self
 end
 
@@ -139,10 +139,10 @@ function Grid:AddObject(object: GuiObject): boolean
 	return false
 end
 
-function Grid:RemoveObject(gridPos: Vector2)
+function Grid:RemoveObject(object: GuiObject)
 	for i, v in self.Objects do
-		if v.GridPos == gridPos then
-			self:RemoveUnits(gridPos.X, gridPos.Y, v.Size)
+		if v.Object == object then
+			self:RemoveUnits(v.GridPos.X, v.GridPos.Y, v.Size)
 			
 			self.Objects[i] = nil
 		end
