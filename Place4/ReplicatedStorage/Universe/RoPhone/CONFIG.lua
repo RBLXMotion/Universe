@@ -18,8 +18,7 @@ CONFIG.ISLAND_SIZE = Vector2.new(.375,.06)		-- Size of the Island Bar in scale
 CONFIG.GESTURE_MARGIN = .01						-- Space between bottom of screen and bottom of Gesture Bar in scale
 CONFIG.GESTURE_SIZE = Vector2.new(.6,.015)		-- Size of the Gesture Bar in scale
 
-CONFIG.APP_GRID_X = 4 							-- Default number of apps per row
-CONFIG.APP_GRID_Y = 5 							-- Default number of apps per column
+CONFIG.APP_GRID_SIZE = Vector2.new(4,5) 		-- Default number of rows and columns
 CONFIG.APP_GRID_SPACING = Vector2.new(.2,.2)	-- Padding between apps
 
 CONFIG.DOCK_MARGIN = .01						-- Space between top of Gesture Bar and bottom of Dock
@@ -27,16 +26,12 @@ CONFIG.DOCK_SIZE = Vector2.new(.95,.125)		-- Size of the Dock on the homescreen
 CONFIG.DOCK_CORNER_RADIUS = UDim.new(.4,0)		-- Corner radius of the Dock
 CONFIG.DOCK_COLOR = Color3.new(0,0,0)			-- Color of the Dock
 CONFIG.DOCK_APPS = 4							-- Max number of apps allowed in the Dock
+CONFIG.DOCK_PADDING = Vector2.new(.075, .3)		-- Padding (x,y) of app button to edge of Dock
 
 CONFIG.INFO_BAR_SIZE = Vector2.new(.25,.04)
 CONFIG.INFO_BAR_MARGIN = .015
 CONFIG.MAX_PAGES = 3
 CONFIG.DOT_SPACING = .2
-
-CONFIG.DOCK_MARGIN = .015                        -- Space between top of Gesture Bar and bottom of Dock
-CONFIG.DOCK_SIZE = Vector2.new(.9,.1)             -- Size of the Dock on the homescreen
-
-CONFIG.PAGE_DOT_SIZE = Vector2.new(.5,.025)
 
 CONFIG.MEDIA_PLAY_ID = 91627705357741			-- Play button image ID (Island media)
 CONFIG.MEDIA_PAUSE_ID = 105425577870678			-- Pause button image ID (Island media)
