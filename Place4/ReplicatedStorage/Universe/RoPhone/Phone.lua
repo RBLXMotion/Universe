@@ -3,7 +3,6 @@
 -- TYPES
 type PhoneSettings = {
 	PhoneColor: Color3,
-	PowerColor: Color3,
 	CaseThickness: number,
 	VolumeColor: Color3,
 }
@@ -15,14 +14,12 @@ local UserInputService = game:GetService("UserInputService")
 
 local CONFIG = require(script.Parent:WaitForChild("CONFIG"))
 
-local Page = require(script:WaitForChild("Page"))
 local App = require(script:WaitForChild("App"))
 local Island = require(script:WaitForChild("Island"))
 local Gesture = require(script:WaitForChild("Gesture"))
 local Volume = require(script:WaitForChild("Volume"))
-local Dock = require(script:WaitForChild("Dock"))
 local Spring = require(script:WaitForChild("Spring"))
-local InfoBar = require(script:WaitForChild("InfoBar"))
+local Homescreen = require(script:WaitForChild("Homescreen"))
 
 local defaultApps = script:WaitForChild("DefaultApps")
 
@@ -129,26 +126,18 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 
 	OS.ScreenCorner = Instance.new("UICorner", OS.Screen)
 	OS.ScreenCorner.CornerRadius = CONFIG.CORNER_RADIUS
+	
+	-- Create a homescreen page
+	OS.Homescreen = Homescreen.new()
+	OS.Homescreen.Frame.Parent = OS.Screen
+	
+	OS.Homescreen:AddPage()
 
-	-- Create homescreen frame
-	OS.Homescreen = Instance.new("CanvasGroup", OS.Screen)
-	OS.Homescreen.Name = "Homescreen"
-	OS.Homescreen.AnchorPoint = Vector2.new(.5,.5)
-	OS.Homescreen.Position = UDim2.new(.5,0,.5,0)
-	OS.Homescreen.Size = UDim2.new(1,0,1,0)
-	OS.Homescreen.BackgroundTransparency = 1
+	OS.Homescreen.PageAdded:Connect(function()
+		
+	end)
 
-	OS.HomeBackground = Instance.new("ImageLabel", OS.Homescreen)
-	OS.HomeBackground.Name = "Background"
-	OS.HomeBackground.AnchorPoint = Vector2.new(.5,.5)
-	OS.HomeBackground.Position = UDim2.new(.5,0,.5,0)
-	OS.HomeBackground.Size = UDim2.new(2,0,1,0)
-	OS.HomeBackground.ScaleType = Enum.ScaleType.Crop
-	OS.HomeBackground.Image = "rbxassetid://"..CONFIG.WALLPAPER_ID
-
-	OS.PageDotsFrame = Instance.new("CanvasGroup", OS.Homescreen)
-	OS.PageDotsFrame.Name = "PageDots"
-	OS.PageDotsFrame.Position
+	OS.CurrentPage = 1
 
 	-- Set up island (pill at top of screen)
 	OS.Island = Island.new()
@@ -167,7 +156,7 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 			task.spawn(function()
 				v:CloseApp()
 				
-				OS.Homescreen.Visible = true
+				OS.Homescreen.Frame.Visible = true
 				
 				local newSpring = Spring.new(OS.Gesture.Button, 1, 5, {BackgroundTransparency = 1})
 				newSpring:Play()
@@ -178,23 +167,6 @@ function OS.Initialize(player: Player, phoneSettings: PhoneSettings?, dataRemote
 			end)
 		end
 	end)
-
-	-- Create a homescreen page
-	OS.Homescreen = Homescreen.new()
-	
-	OS.Homescreen.PageAdded:Connect(function()
-		
-	end
-	
-	OS.Grids = {
-		[1] = Grid.new(OS.Pages[1].Frame, Vector2.new(CONFIG.APP_GRID_X,CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[1].GridFrame)
-	}
-	
-	OS.Dock = Dock.new(OS.Homescreen)
-	OS.DockGrid = Grid.new(OS.Homescreen, Vector2.new(CONFIG.DOCK_APPS, 1), Vector2.new(CONFIG.APP_GRID_SPACING, 0), OS.Dock.Frame, .075, .3)
-	
-	OS.InfoBar = InfoBar.new()
-	OS.InfoBar.Button.Parent = OS.Homescreen
 
 	-- Create table for all registered apps
 	OS.Apps = {}
@@ -212,58 +184,22 @@ end
 function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme: "Light" | "Dark"): typeof(App.new())
 	local app = App.new(name, frame, imageId, theme, CONFIG.ASPECT_RATIO)
 
-	local timeout = CONFIG.APP_TIMEOUT
-
-	repeat
-		if timeout < CONFIG.APP_TIMEOUT then
-			task.wait(1)
+	for i = 1, CONFIG.APP_TIMEOUT do
+		if OS.Apps ~= nil then
+			break
 		end
 		
-		timeout -= 1
-		
-		if timeout <= 0 and not OS.Apps then
-			warn("Could not add app. App table not found.")
+		if i == CONFIG.APP_TIMEOUT then
+			warn("App could not be registered because the 'OS.Apps' table could not be found.")
 			return
 		end
-	until OS.Apps
+		
+		task.wait(1)
+	end
 
 	table.insert(OS.Apps, app)
 	
-	local foundGrid = false
-
-	local foundGrid = false
-
-	for i, v in OS.Grids do
-		app.Button.Size = UDim2.fromScale((1/v.X), 1/v.Y)
-
-		local added, gridPos = v:AddObject(app.Button)
-		if added then			
-			app.Button.Parent = OS.Pages[i].Frame
-			app.GridPos = gridPos
-			foundGrid = true
-			break
-		end
-	end
-	
-	if not foundGrid then
-		local pageNum = #OS.Pages + 1
-		local gridNum = #OS.Grids + 1
-
-		OS.Pages[pageNum] = Page.new(OS.Homescreen, OS.IslandInset, OS.GestureInset)
-		OS.Grids[gridNum] = Grid.new(OS.Pages[pageNum].Frame, Vector2.new(CONFIG.APP_GRID_X, CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[pageNum].GridFrame)
-
-		OS.Grids[gridNum]:AddObject(app.Button)
-	end
-
-	if not foundGrid then
-		local pageNum = #OS.Pages + 1
-		local gridNum = #OS.Grids + 1
-		
-		local page = OS.Pages[pageNum] = Page.new(OS.Homescreen, OS.IslandInset, OS.GestureInset)
-		local grid = OS.Grids[gridNum] = Grid.new(OS.Pages[pageNum].Frame, Vector2.new(CONFIG.APP_GRID_X, CONFIG.APP_GRID_Y), CONFIG.APP_GRID_SPACING, OS.Pages[pageNum].GridFrame)
-
-		grid:AddObject(app.Button)
-	end
+	OS.Homescreen:AddAppButton(app.Button)
 
 	app.DefaultSize = app.Button.Size
 	app.DefaultPos = app.Button.Position
@@ -285,28 +221,17 @@ function OS.RegisterApp(name: string, frame: CanvasGroup, imageId: number, theme
 		end
 	end)
 	
-	app.Button.MouseButton2Click:Connect(function()
-		local originalSize = app.Button.Size
-		app.Button.Size = UDim2.new(1/CONFIG.DOCK_APPS,0,1,0)
-		
-		local added, gridPos = OS.DockGrid:AddObject(app.Button)
-		
-		if not added then
-			app.Button.Size = originalSize
-			return
+	OS.Homescreen.AppButtonDocked:Connect(function(appButton: GuiButton)
+		if appButton == app.Button then
+			app.DefaultSize = appButton.Size
+			app.DefaultPos = appButton.Position
+			
+			appButton.Parent = OS.Homescreen.Frame
 		end
-		
-		OS.Grids[1]:RemoveObject(app.GridPos)
-		
-		app.DefaultSize = app.Button.Size
-		app.DefaultPos = app.Button.Position
-		app.GridPos = gridPos
-				
-		app.Button.Parent = OS.Homescreen
 	end)
 	
 	app.Opened:Connect(function()
-		OS.Homescreen.Visible = false
+		OS.Homescreen.Frame.Visible = false
 	end)
 
 	return app
