@@ -38,7 +38,6 @@ function App.new(name: string, frame: CanvasGroup, imageId: number, theme: Theme
 	
 	self.DefaultPos = UDim2.new()
 	self.DefaultSize = UDim2.new()
-	self.GridPos = Vector2.new()
 
 	self.ButtonClicked = self.Button.MouseButton1Click
 
